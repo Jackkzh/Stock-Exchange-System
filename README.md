@@ -16,5 +16,5 @@ Strategy: In the server side, we use `threadPool` to do concurrency control, oth
 
 
 ## 2.2 Database Interaction
-&bsnp. a. Object Relational Mapping(ORM) options: 1. Hibernates, 2.myBatis 
-&bsnp. b. Directly interact with database using SQL 
+&nbsp;  a. Object Relational Mapping(ORM) options: 1. Hibernates, 2.myBatis 
+&nbsp;  b. Directly interact with database using SQL 
