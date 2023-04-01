@@ -7,8 +7,12 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import javax.validation.constraints.NotNull;
-
-
+// import for ChannelPipeline
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.Delimiters;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 
 public class Server {
     public static void main(String[] args) throws Exception {
@@ -35,7 +39,11 @@ public class Server {
                         @Override
                         protected void initChannel(@NotNull SocketChannel socketChannel) throws Exception {
                             //将 ServerHandler 处理器添加到管道中，用来处理客户端连接的读写事件
-                            socketChannel.pipeline().addLast(new ServerHandler());
+                            ChannelPipeline pipeline = socketChannel.pipeline();
+                            pipeline.addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+                            pipeline.addLast("decoder", new StringDecoder());
+                            pipeline.addLast("encoder", new StringEncoder());
+                            pipeline.addLast(new ServerHandler());
                         }
                     });//给workerGroup的EventLoop对应的管道设置处理器
             System.out.println("Stock Exchange Server is online!");

@@ -17,7 +17,8 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         //接收服务端发送过来的消息
         ByteBuf byteBuf = (ByteBuf) msg;
-        System.out.println("Receive message: " + ctx.channel().remoteAddress() + " from server: " + byteBuf.toString(CharsetUtil.UTF_8));
+        System.out.println("***** Received message from: " + ctx.channel().remoteAddress() + " *****");
+        System.out.println(byteBuf.toString(CharsetUtil.UTF_8));
     }
 }
 
