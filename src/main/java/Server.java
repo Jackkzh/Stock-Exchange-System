@@ -13,7 +13,8 @@ import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
-
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 public class Server {
     public static void main(String[] args) throws Exception {
         // creates two multi-thread groups
@@ -41,8 +42,9 @@ public class Server {
                             //将 ServerHandler 处理器添加到管道中，用来处理客户端连接的读写事件
                             ChannelPipeline pipeline = socketChannel.pipeline();
                             pipeline.addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
-                            pipeline.addLast("decoder", new StringDecoder());
-                            pipeline.addLast("encoder", new StringEncoder());
+                            pipeline.addLast("decoder", new StringDecoder()); // automatically decode the received ByteBuf into a String
+                            pipeline.addLast("encoder", new StringEncoder()); // automatically encode the String response into a ByteBuf
+                             //pipeline.addLast(new LoggingHandler(LogLevel.INFO));
                             pipeline.addLast(new ServerHandler());
                         }
                     });//给workerGroup的EventLoop对应的管道设置处理器
@@ -50,7 +52,6 @@ public class Server {
 
             //ChannelFuture 是 Netty 中的一个异步 IO 操作结果的句柄，来监听异步操作结果
             //一个操作的结果通常是一个 ChannelFuture 对象，如：绑定、连接、写入、读取等
-
             //绑定端口号，启动服务端
             ChannelFuture channelFuture = bootstrap.bind(7788).sync();
             //对关闭通道进行监听

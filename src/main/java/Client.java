@@ -16,7 +16,7 @@ import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
-
+import java.util.concurrent.CountDownLatch;
 
 public class Client {
 
@@ -24,6 +24,7 @@ public class Client {
         NioEventLoopGroup eventExecutors = new NioEventLoopGroup();
         try {
             //创建bootstrap对象，配置参数
+//            CountDownLatch latch = new CountDownLatch(1);
             Bootstrap bootstrap = new Bootstrap();
             //设置线程组
             bootstrap.group(eventExecutors)
@@ -44,20 +45,31 @@ public class Client {
             //连接服务端
             ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 7788).sync();
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+
             while (true) {
-                String line = in.readLine();
-                if (in.readLine().equals("exit")) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+                StringBuilder sb = new StringBuilder(); // 用 StringBuilder 来保存所有的输入行
+                String firstLine = in.readLine();
+
+                if (firstLine.equals("exit")) {
                     break;
                 }
-//                channelFuture.channel().writeAndFlush(line + "\r\n");
-//                System.out.println("Sent message to server: " + line);
-                ByteBuf buf = Unpooled.copiedBuffer(line + "\r\n", CharsetUtil.UTF_8);
-                channelFuture.channel().writeAndFlush(buf);
-                System.out.println("Sent message to server: " + line);
+                sb.append(firstLine).append(System.lineSeparator());
+                while (true) {
+                    String line = in.readLine();
+                    if (line.isEmpty()) {
+                        break;
+                    }
+                    // System.lineSeparator() 返回当前系统的行分隔符；可以避免因不同操作系统行分隔符不同而产生的问题。
+                    sb.append(line).append(System.lineSeparator());
+                }
+                //对通道关闭进行监听
+                String input = sb.toString(); // 将 StringBuilder 转成字符串
+                channelFuture.channel().writeAndFlush(input);
+                System.out.println("Sent message to server: " + input);
             }
-            //对通道关闭进行监听
-            channelFuture.channel().closeFuture().sync();
+
+            //channelFuture.channel().closeFuture().sync();
         } finally {
             //关闭线程组
             eventExecutors.shutdownGracefully();

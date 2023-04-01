@@ -3,22 +3,34 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.CharsetUtil;
+import java.util.concurrent.CountDownLatch;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 
+public class ClientHandler extends SimpleChannelInboundHandler<String> {
 
-public class ClientHandler extends ChannelInboundHandlerAdapter {
+//    private final CountDownLatch latch;
+//
+//    public ClientHandler(CountDownLatch latch) {
+//        this.latch = latch;
+//    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         //发送消息到服务端
-        ctx.writeAndFlush(Unpooled.copiedBuffer("Successfully connected to server ", CharsetUtil.UTF_8));
+        ctx.writeAndFlush("Successfully connected to server\r\n");
     }
 
+
+
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        //接收服务端发送过来的消息
-        ByteBuf byteBuf = (ByteBuf) msg;
-        System.out.println("***** Received message from: " + ctx.channel().remoteAddress() + " *****");
-        System.out.println(byteBuf.toString(CharsetUtil.UTF_8));
+    protected void channelRead0(ChannelHandlerContext ctx, String msg) {
+        System.out.println("Received message from server: " + msg);
+//        if ("Server successfully received the message.".equals(msg)) {
+//            latch.countDown();
+//        }
     }
+
 }
+
 
