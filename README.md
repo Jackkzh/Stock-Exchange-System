@@ -5,22 +5,19 @@ Collaborator
 * Wenxi Zhong - wz173
 
 # 2. Tech Stacks
-Java + DOM Parser + PostgreSQL
+Netty + Java DOM Parser + Hibernates + PostgreSQL
 
 
 # 3. Design & Implementation
 
 ## 2.1 MultiThread Implementation
-*Strategy*: In the server side, we use `threadPool` to do concurrency control, otherwise, too many requests will cause us Out Of Memory
-
-I used Netty framework to establish connection among server and clients. Netty provide built-in methods for realizing threadpools and Socket programming. The workflows of how Server handles a connection and assign it to a WorkerGroup is as follows:
+We used Netty framework to establish connection among server and clients. Netty provide built-in methods for realizing Multithread programming and Socket programming. The workflows of how Server handles a connection and assign it to a WorkerGroup is as follows:
 
 ![image](https://user-images.githubusercontent.com/101923398/229297448-a59833df-8a37-4160-b260-5099fb20c95f.png)
 
 
-
 ## 2.2 Socket Connection Implementation
-Establishing Connection using Java Socket methods. 
+Establishing Connection using Netty.
 
 ## 2.3 XML Parsing
 One option is to use Java DOM. Link is as follows:     
