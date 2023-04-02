@@ -80,7 +80,7 @@ public class DBHandler {
             stmt.close();
         }catch (SQLException e){
             e.printStackTrace();
-            System.err.println("Fail to commit"+sql);
+            System.err.println("Fail to commit");
             return;
         }
 
