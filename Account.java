@@ -1,5 +1,6 @@
 import java.sql.*;
 import java.sql.Statement;
+import java.time.Instant;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
@@ -8,6 +9,7 @@ public class Account {
     private DBHandler db;
     private int accountID;
     private double current_balance;
+    
     public Account(DBHandler rhsdb, int rhsaccountID, double rhscurrent_balance){
         this.db = rhsdb;
         this.accountID = rhsaccountID;
@@ -28,6 +30,7 @@ public class Account {
         try{
             DBHandler db = new DBHandler();
             db.createDBHandler();
+
             Account account = new Account(db,12345,1000);
             account.createNewAccountDB();
 
@@ -35,6 +38,16 @@ public class Account {
             position.createNewPositionDB();
             Position position2 = new Position(db, 3000, "SYM", 12345);
             position2.createNewPositionDB();
+
+            Transaction transaction = new Transaction(db, 12345);
+            transaction.createTransactionDB();
+
+            MyOrder myorder = new MyOrder(db, 100, 145.67, "OPEN", Timestamp.from(Instant.now()), "SYM", 12345, 1);
+            myorder.createMyOrderDB();
+
+            MyOrder myorder2 = new MyOrder(db, -300, 200.01, "OPEN", Timestamp.from(Instant.now()), "SYM", 12345, 1);
+            myorder2.createMyOrderDB();
+
         }catch(Exception e){
             e.printStackTrace();
             System.out.println("something goes wrong with the account");
