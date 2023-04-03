@@ -1,7 +1,7 @@
 # Stock-Exchange-System
 
 Collaborator
-* Yu Xiong
+* Yu Xiong - yx236
 * Wenxi Zhong - wz173
 
 # 2. Tech Stacks
