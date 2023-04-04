@@ -31,7 +31,9 @@ public class XMLParser {
         if (rootName.equals("create")) {
             processCreateXML(nodeList);
         } else if (rootName.equals("transactions")) {
-            processTransactionsXML(nodeList);
+//
+
+            processTransactionsXML(nodeList, root);
         } else {
             throw new IllegalArgumentException("XML only accepts create or transactions.");
         }
@@ -53,6 +55,9 @@ public class XMLParser {
                 if (nodeName.equals("account")) {
                     processAccountXML(element, true);
                 } else if (nodeName.equals("symbol")) {
+                    // get symbol sym name
+                    String symName = element.getAttribute("sym");
+
                     // recursively process the symbol node
                     NodeList symbolList = element.getChildNodes();
                     for (int j = 0; j < symbolList.getLength(); j++) {
@@ -113,9 +118,43 @@ public class XMLParser {
     }
 
 
-    public void processTransactionsXML(NodeList nodeList) {
+    /**
+     * This function is used to parse and process 'transactions' operation
+     * @param nodeList the list of nodes to be processed
+     * @param root the root element (which is 'transactions')
+     */
+    public void processTransactionsXML(NodeList nodeList, Element root) throws InvalidParameterException {
+        try {
+            // check if Account ID is valid
+            int accountID = Integer.parseInt(root.getAttribute("id"));
 
+            // process each node in nodeList, check
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                Node node = nodeList.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    Element element = (Element) node;
+                    String nodeName = element.getNodeName();
+                    if (nodeName.equals("order")) {
+                        String sym = element.getAttribute("sym");
+                        double amount = Double.parseDouble(element.getAttribute("amount"));
+                        double limits = Double.parseDouble(element.getAttribute("limit"));
+                        // opened order API
+                    } else if (nodeName.equals("cancel")) {
+                        int TransID = Integer.parseInt(element.getAttribute("id"));
+                        // cancel order API
+                    } else if (nodeName.equals("query")) {
+                        String TransID = element.getAttribute("sym");
+                        // query order API
+                    }
+                }
+            }
+        } catch (NumberFormatException e) {
+            throw new InvalidParameterException("Invalid attributes format");
+        } catch (Exception e) {
+            throw new InvalidParameterException("transaction logic error");
+        }
     }
+
 
 
 
