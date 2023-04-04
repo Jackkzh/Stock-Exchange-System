@@ -18,7 +18,20 @@ public class Position {
         this.accountID = rhsaccountID;
     }
 
-    public ResultSet findOldPosition() throws SQLException {
+    public int getID(){
+        return positionID;
+    }
+
+    static void findOldPositionDirectlyDB(DBHandler rhsdb, int rhsaccountID, String rhssymbol_name) throws SQLException {
+        String sql = "SELECT * FROM POSITION WHERE ACCOUNT_ID = " + rhsaccountID + 
+        " AND SYMBOL_NAME = \'" + rhssymbol_name + "\';";
+        ResultSet result = rhsdb.commitAndReturn(sql);
+        if(!result.next()){
+            throw new SQLException("cannot find the existed position tuple");
+        }
+    }
+
+    public ResultSet findOldPositionDB() throws SQLException {
         String sql = "SELECT * FROM POSITION WHERE ACCOUNT_ID = " + this.accountID + 
         " AND SYMBOL_NAME = \'" + this.symbol_name + "\';";
         ResultSet result = this.db.commitAndReturn(sql);
@@ -41,7 +54,7 @@ public class Position {
     // 用的时候一定要注意上级method需要有个try catch
     public void createNewPositionDB() throws SQLException{
 
-        ResultSet oldtuple = findOldPosition();
+        ResultSet oldtuple = findOldPositionDB();
         if(!oldtuple.next()){
             // purely new
             String sql = "INSERT INTO POSITION" +

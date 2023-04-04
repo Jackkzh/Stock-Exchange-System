@@ -48,6 +48,10 @@ public class MyOrder {
         }
     }
 
+    public int getID(){
+        return orderID;
+    }
+
     // query tag
     // cancel tag
     

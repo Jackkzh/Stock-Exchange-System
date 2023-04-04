@@ -27,4 +27,8 @@ public class Transaction {
             throw new SQLException("cannot add a new transaction tuple");
         }
     }
+
+    public int getID(){
+        return transactionID;
+    }
 }
