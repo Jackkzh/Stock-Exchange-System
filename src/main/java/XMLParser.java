@@ -44,11 +44,10 @@ public class XMLParser {
 
         // top root is either create or transactions
         if (rootName.equals("create")) {
-            //System.out.println("create....");
             processCreateXML(nodeList, responseXML);
         } else if (rootName.equals("transactions")) {
             System.out.println("transactions....");
-            processTransactionsXML(nodeList, root);
+            processTransactionsXML(nodeList, root, responseXML);
         } else {
             throw new IllegalArgumentException("XML only accepts create or transactions.");
         }
@@ -202,6 +201,7 @@ public class XMLParser {
             created.appendChild(responseXML.createTextNode(errorMsg));
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(created);
+
         } catch (Exception e) {
             String errorMsg = e.getMessage();
             Element created = responseXML.createElement("error");
@@ -222,8 +222,9 @@ public class XMLParser {
      * This function is used to parse and process 'transactions' operation
      * @param nodeList the list of nodes to be processed
      * @param root the root element (which is 'transactions')
+     * @ param responseXML the response XML
      */
-    public void processTransactionsXML(NodeList nodeList, Element root) throws InvalidParameterException {
+    public void processTransactionsXML(NodeList nodeList, Element root, Document responseXML) throws InvalidParameterException {
         try {
             // check if Account ID is valid
             int accountID = Integer.parseInt(root.getAttribute("id"));
@@ -276,10 +277,5 @@ public class XMLParser {
                 "    </symbol>\n" +
                 "</create>";
         xmlParser.parseXML(xml);
-//
     }
-
-//
-
-
 }
