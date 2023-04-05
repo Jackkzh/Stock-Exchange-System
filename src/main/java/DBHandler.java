@@ -1,4 +1,9 @@
+package src.main.java;
 import java.sql.*;
+import java.sql.Statement;
+import java.time.Instant;
+import java.sql.Connection;
+import java.sql.DriverManager;
 
 public class DBHandler {
 

@@ -1,3 +1,4 @@
+package src.main.java;
 import java.sql.*;
 import java.sql.Statement;
 import java.sql.Connection;
@@ -23,12 +24,11 @@ public class Transaction {
         if(result.next()){
             this.transactionID = result.getInt("TRANS_ID");
         }else{
-            // 改 暂时用SQL
             throw new SQLException("cannot add a new transaction tuple");
         }
     }
 
     public int getID(){
-        return transactionID;
+        return this.transactionID;
     }
 }

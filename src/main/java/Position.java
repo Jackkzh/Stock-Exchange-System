@@ -1,3 +1,4 @@
+package src.main.java;
 import java.sql.*;
 import java.sql.Statement;
 import java.sql.Connection;
@@ -11,7 +12,19 @@ public class Position {
     private String symbol_name;
     private int accountID;
 
-    public Position(DBHandler rhsdb, double rhsamount, String rhssymbol_name, int rhsaccountID){
+    // for transaction
+    public Position(DBHandler rhsdb, double rhsamount, String rhssymbol_name, int rhsaccountID, boolean tf){
+        this.db = rhsdb;
+        this.amount = rhsamount;
+        this.symbol_name = rhssymbol_name;
+        this.accountID = rhsaccountID;
+    }
+
+    public Position(DBHandler rhsdb, double rhsamount, String rhssymbol_name, int rhsaccountID) throws IllegalArgumentException {
+
+        if(rhsamount <= 0){
+            throw new IllegalArgumentException("amount cannot be 0 or negative");
+        }
         this.db = rhsdb;
         this.amount = rhsamount;
         this.symbol_name = rhssymbol_name;
@@ -19,7 +32,11 @@ public class Position {
     }
 
     public int getID(){
-        return positionID;
+        return this.positionID;
+    }
+
+    public double getAmount(){
+        return this.amount;
     }
 
     static void findOldPositionDirectlyDB(DBHandler rhsdb, int rhsaccountID, String rhssymbol_name) throws SQLException {
@@ -52,7 +69,7 @@ public class Position {
     }
 
     // 用的时候一定要注意上级method需要有个try catch
-    public void createNewPositionDB() throws SQLException{
+    public void createNewPositionDB() throws SQLException, IllegalArgumentException{
 
         ResultSet oldtuple = findOldPositionDB();
         if(!oldtuple.next()){
@@ -65,7 +82,6 @@ public class Position {
             if(result.next()){
                 this.positionID = result.getInt("POSITION_ID");
             }else{
-                // 改 暂时用SQL
                 throw new SQLException("cannot add a new position tuple");
             }
         }else{
@@ -79,13 +95,15 @@ public class Position {
             String oldsymbolNmae = oldtuple.getString("SYMBOL_NAME");
             int oldaccountID = oldtuple.getInt("ACCOUNT_ID");
             double newamount = this.amount + oldamount;
+            
             if(newamount<0){
-                throw new SQLException("total amount cannot be negative");
+                throw new IllegalArgumentException("total amount cannot be negative");
             }else if(newamount==0){
                 deletePositionDB();
             }else{
                 updateAmountofPositionDB(newamount);
             }
+            this.amount = this.amount + oldamount;
 
         }
         

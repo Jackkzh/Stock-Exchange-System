@@ -1,3 +1,4 @@
+package src.main.java;
 import java.sql.*;
 import java.sql.Statement;
 import java.sql.Connection;
@@ -15,7 +16,15 @@ public class MyOrder {
     private int accountID;
     private int transID;
 
-    public MyOrder(DBHandler rhsdb, double rhsamountPurchase, double rhslimitPrice, String rhsstatus, Timestamp rhscreatedTime, String rhssymbolName, int rhsaccountID, int rhstransID){
+    public MyOrder(DBHandler rhsdb, double rhsamountPurchase, double rhslimitPrice, String rhsstatus, Timestamp rhscreatedTime, String rhssymbolName, int rhsaccountID, int rhstransID) throws IllegalArgumentException {
+
+        if(rhsamountPurchase == 0){
+            throw new IllegalArgumentException("amount purchase cannot be 0");
+        }
+
+        if(rhslimitPrice <= 0){
+            throw new IllegalArgumentException("limit price cannot be 0 or negative");
+        }
         this.db = rhsdb;
         this.amountPurchase = rhsamountPurchase;
         this.limitPrice = rhslimitPrice;
@@ -49,7 +58,7 @@ public class MyOrder {
     }
 
     public int getID(){
-        return orderID;
+        return this.orderID;
     }
 
     // query tag

@@ -1,3 +1,5 @@
+package src.main.java;
+
 import java.sql.*;
 import java.sql.Statement;
 import java.time.Instant;
@@ -39,7 +41,10 @@ public class Account {
     // inside create tag
     // add a new account so do not have to check if there already has one
     // if already has one, error
-    public Account(DBHandler rhsdb, int rhsaccountID, double rhscurrent_balance){
+    public Account(DBHandler rhsdb, int rhsaccountID, double rhscurrent_balance) throws IllegalArgumentException {
+        if(rhscurrent_balance<0){
+            throw new IllegalArgumentException("current balance cannot be negative");
+        }
         this.db = rhsdb;
         this.accountID = rhsaccountID;
         this.current_balance = rhscurrent_balance; 
@@ -122,14 +127,14 @@ public class Account {
             // a seller order
             double moneyhavetoincrease = -1 * rhsamountPurchase * rhslimitPrice;
             double amountofSymbol = findAmountofSymbolDB(rhssymbolName);
-            if(rhsamountPurchase <= amountofSymbol){
+            if(((-1) * rhsamountPurchase) <= amountofSymbol){
                 this.current_balance = this.current_balance + moneyhavetoincrease;
 
                 // update balance from account first
                 updateBalanceDB(this.current_balance);
                 // delete or update position related
                 Position.findOldPositionDirectlyDB(this.db, this.accountID, rhssymbolName);
-                Position position = new Position(this.db, rhsamountPurchase, rhssymbolName, this.accountID);
+                Position position = new Position(this.db, rhsamountPurchase, rhssymbolName, this.accountID, true);
                 // update new position to db
                 position.createNewPositionDB();
 
@@ -148,7 +153,7 @@ public class Account {
                 // 看这里！！！！！！！match还没加！！！！！
 
             }else{
-                throw new SQLException("do have enough money to buy a position");
+                throw new SQLException("related position does have enough amount to sell");
             }
         }
 
@@ -171,15 +176,22 @@ public class Account {
 
             Position position = new Position(db, 80, "CCC", 12345);
             position.createNewPositionDB();
+            System.out.println("position amount now: " + position.getAmount());
 
             int orderID = account.createOrderStep1("SYM", 100, 145.67);
+            System.out.println("account amount now: " + account.current_balance);
             int orderID2 = account.createOrderStep1("CCC", -50, 88.6);
-            System.out.println("the original order id for buyer is: " + orderID);
-            System.out.println("the original order id for seller is: " + orderID2);
+            System.out.println("account amount now: " + account.current_balance);
+
+            position = new Position(db, 0, "CCC", 12345, true);
+            position.createNewPositionDB();
+            System.out.println("position amount now: " + position.getAmount());
+            //System.out.println("the original order id for buyer is: " + orderID);
+            //System.out.println("the original order id for seller is: " + orderID2);
 
         }catch(Exception e){
             e.printStackTrace();
-            System.out.println("something goes wrong with the account");
+            System.out.println("something goes wrong with the test");
         }
     }
     
