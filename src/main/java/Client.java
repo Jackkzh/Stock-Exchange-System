@@ -17,6 +17,8 @@ import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import java.util.concurrent.CountDownLatch;
+//import for  'Base64'
+import java.util.Base64;
 
 public class Client {
 
@@ -35,7 +37,7 @@ public class Client {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             //添加客户端通道的处理器
-                            ch.pipeline().addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+                            //ch.pipeline().addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
                             ch.pipeline().addLast("decoder", new StringDecoder());
                             ch.pipeline().addLast("encoder", new StringEncoder());
                             ch.pipeline().addLast(new ClientHandler());
@@ -46,9 +48,26 @@ public class Client {
             ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 7788).sync();
 
 
+//            String input =
+//                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+//                    "<create>\n" +
+//                            "    <account id=\"2\" balance=\"100.00\"/>\n" +
+//                            "    <account id=\"1\" balance=\"100.00\"/>\n" +
+//                            "    <symbol sym=\"AAPL\">\n" +
+//                            "        <account id=\"2\">1234</account>\n" +
+//                            "        <account id=\"3\">12324</account>\n" +
+//                            "    </symbol>\n" +
+//                            "    <symbol sym=\"MSFT\">\n" +
+//                            "        <account id=\"5\">12</account>\n" +
+//                            "        <account id=\"3\">324</account>\n" +
+//                            "    </symbol>\n" +
+//                            "</create>\n";
+            //channelFuture.channel().writeAndFlush(input);
+
             while (true) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
                 StringBuilder sb = new StringBuilder(); // 用 StringBuilder 来保存所有的输入行
+                sb.setLength(0);
                 String firstLine = in.readLine();
 
                 if (firstLine.equals("exit")) {
