@@ -32,7 +32,45 @@ public class XMLParser {
         return reponseMessage;
     }
 
+    public boolean checkValidXML (String xml) {
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            StringBuilder xmlStringBuilder = new StringBuilder();
+            xmlStringBuilder.append(xml);
+            ByteArrayInputStream input = new ByteArrayInputStream(xmlStringBuilder.toString().getBytes("UTF-8"));
+            Document doc = db.parse(input);
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            return false;
+        }
+        return true;
+    }
+
+
+
     public void parseXML(String xml) throws TransformerException, ParserConfigurationException, IOException, SAXException, IllegalArgumentException {
+        if (!checkValidXML(xml)) {
+            // write a xml with root called 'error' and a msg saying 'XML is not well-formed.'
+
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            StringBuilder xmlStringBuilder = new StringBuilder();
+            Document responseXML = db.newDocument();
+            String errorMsg = "XML is not well-formed.";
+            Element responseRoot = responseXML.createElement("error");
+            responseRoot.appendChild(responseXML.createTextNode(errorMsg));
+            responseXML.appendChild(responseRoot);
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(responseXML), new StreamResult(writer));
+            String result = writer.getBuffer().toString().replaceAll("\n|\r", "");
+            reponseMessage = result;
+            return;
+        }
+
+
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();

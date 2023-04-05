@@ -65,27 +65,30 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
         for (String line : lines) {
                 request += line.trim();
         }
-        System.out.println("Received message from client: " + request);
+        //System.out.println("Received message from client: " + request);
 
         //check if msg is a valid xml, if not print error message
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            builder.parse(new InputSource(new StringReader(msg)));
-        } catch (SAXException e) {
-            System.out.println("Invalid XML");
-            return;
-        }
-
-
+//        try {
+//            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+//            DocumentBuilder builder = factory.newDocumentBuilder();
+//            builder.parse(new InputSource(new StringReader(msg)));
+//        } catch (SAXException e) {
+//            System.out.println("Invalid XML");
+//            return;
+//        }
+//
+//
+//        xmlParser = new XMLParser();
+//        try {
+//            xmlParser.parseXML(msg);
+//        } catch (IllegalArgumentException e)
+//        {
+//            System.out.println("Invalid XML syntax");
+//            return;
+//        }
         xmlParser = new XMLParser();
-        try {
-            xmlParser.parseXML(msg);
-        } catch (IllegalArgumentException e)
-        {
-            System.out.println("Invalid XML syntax");
-            return;
-        }
+        xmlParser.parseXML(request);
+
         String response = xmlParser.getResponseMessage();
         ctx.writeAndFlush(response);
     }
