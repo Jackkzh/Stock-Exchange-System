@@ -6,12 +6,12 @@ import java.sql.DriverManager;
 
 public class Transaction {
     
-    private DBHandler db;
+    //private DBHandler db;
     private int transactionID;
     private int accountID;
 
-    public Transaction(DBHandler rhsdb, int rhsaccountID){
-        this.db = rhsdb;
+    public Transaction(int rhsaccountID){
+        //this.db = rhsdb;
         this.accountID = rhsaccountID;
     }
 
@@ -20,7 +20,7 @@ public class Transaction {
         String sql = "INSERT INTO TRANSACTION" +
         "(ACCOUNT_ID) VALUES (" +
         this.accountID + ") RETURNING TRANS_ID;";
-        ResultSet result = this.db.commitAndReturn(sql);
+        ResultSet result = DBHandler.getInstance().commitAndReturn(sql);
         if(result.next()){
             this.transactionID = result.getInt("TRANS_ID");
         }else{

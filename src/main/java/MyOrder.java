@@ -4,7 +4,7 @@ import java.util.*;
 
 public class MyOrder {
 
-    private DBHandler db;
+//    private DBHandler db;
     private int orderID;
     private double amountPurchase;
     private double limitPrice;
@@ -14,9 +14,9 @@ public class MyOrder {
     private int accountID;
     private int transID;
 
-    public MyOrder(DBHandler rhsdb, int rhsorderID, double rhsamountPurchase, double rhslimitPrice, String rhsstatus, Timestamp rhscreatedTime, String rhssymbolName, int rhsaccountID, int rhstransID){
+    public MyOrder(int rhsorderID, double rhsamountPurchase, double rhslimitPrice, String rhsstatus, Timestamp rhscreatedTime, String rhssymbolName, int rhsaccountID, int rhstransID){
 
-        this.db = rhsdb;
+        //this.db = rhsdb;
         this.orderID = rhsorderID;
         this.amountPurchase = rhsamountPurchase;
         this.limitPrice = rhslimitPrice;
@@ -27,7 +27,7 @@ public class MyOrder {
         this.transID = rhstransID;
     }
 
-    public MyOrder(DBHandler rhsdb, double rhsamountPurchase, double rhslimitPrice, String rhsstatus, Timestamp rhscreatedTime, String rhssymbolName, int rhsaccountID, int rhstransID) throws IllegalArgumentException {
+    public MyOrder(double rhsamountPurchase, double rhslimitPrice, String rhsstatus, Timestamp rhscreatedTime, String rhssymbolName, int rhsaccountID, int rhstransID) throws IllegalArgumentException {
 
         if(rhssymbolName == "" || rhssymbolName == null){
             throw new IllegalArgumentException("error symbol name");
@@ -39,7 +39,7 @@ public class MyOrder {
         if(rhslimitPrice <= 0){
             throw new IllegalArgumentException("limit price cannot be 0 or negative");
         }
-        this.db = rhsdb;
+//        this.db = rhsdb;
         this.amountPurchase = rhsamountPurchase;
         this.limitPrice = rhslimitPrice;
         this.status = rhsstatus;
@@ -49,6 +49,9 @@ public class MyOrder {
         this.transID = rhstransID;
     }
 
+    public Timestamp getCreatedTime(){
+        return this.createdTime;
+    }
     // 用的时候一定要注意上级method需要有个try catch
     // order tag
 
@@ -67,7 +70,7 @@ public class MyOrder {
         this.symbolName + "\', " +
         this.accountID + ", " +
         this.transID + ") RETURNING ORDER_ID;";
-        ResultSet result = this.db.commitAndReturn(sql);
+        ResultSet result = DBHandler.getInstance().commitAndReturn(sql);
         if(result.next()){
             this.orderID = result.getInt("ORDER_ID");
         }else{
@@ -89,7 +92,7 @@ public class MyOrder {
     }
 
     public DBHandler getDB(){
-        return this.db;
+        return DBHandler.getInstance();
     }
 
     public int getAccountID(){
@@ -111,20 +114,20 @@ public class MyOrder {
     public void symbolUpdateStatusDB(String rhsstatus) throws SQLException {
         String sql = "UPDATE MYORDER SET STATUS = \'" + rhsstatus + "\' WHERE " +
         "ORDER_ID = " + this.orderID + ";";
-        this.db.commit(sql);
+        DBHandler.getInstance().commit(sql);
     }
 
     public void amountUpdateStatusDB(double amount) throws SQLException {
         String sql = "UPDATE MYORDER SET AMOUNT_PURCHASE = " + amount + " WHERE " +
         "ORDER_ID = " + this.orderID + ";";
-        this.db.commit(sql);
+        DBHandler.getInstance().commit(sql);
     }
 
     public void findnewestOrder(int findorderID) throws SQLException {
 
         String sql = "SELECT * FROM MYORDER WHERE ORDER_ID = " + 
         findorderID + ";";
-        ResultSet result = this.db.commitAndReturn(sql);
+        ResultSet result = DBHandler.getInstance().commitAndReturn(sql);
 
         if(result.next()){
 
@@ -145,7 +148,7 @@ public class MyOrder {
     public void deleteOrder(int findorderID) throws SQLException {
 
         String sql = "DELETE FROM MYORDER WHERE ORDER_ID = " + findorderID + ";";
-        this.db.commit(sql);
+        DBHandler.getInstance().commit(sql);
 
     }
     

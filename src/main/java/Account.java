@@ -22,17 +22,17 @@ public class Account {
 
     // can check if we already have this account
     // update data in case there are some other thread change it
-    public void checkExistedAccountandRefreshDB(DBHandler rhsdb, int rhsaccountID) throws SQLException {
+    public void checkExistedAccountandRefreshDB(int rhsaccountID) throws SQLException {
 
         String sql = "SELECT * FROM ACCOUNT WHERE ACCOUNT_ID = "+
         rhsaccountID + ";";
-        ResultSet result = rhsdb.commitAndReturn(sql);
+        ResultSet result = DBHandler.getInstance().commitAndReturn(sql);
         if(!result.next()){
             throw new SQLException("cannot find this account in db");
         }
 
         // keep it the newest
-        this.db = rhsdb;
+        //this.db = rhsdb;
         this.accountID = result.getInt("ACCOUNT_ID");
         this.current_balance = result.getDouble("CURRENT_BALANCE");
 
@@ -41,11 +41,11 @@ public class Account {
     // inside create tag
     // add a new account so do not have to check if there already has one
     // if already has one, error
-    public Account(DBHandler rhsdb, int rhsaccountID, double rhscurrent_balance) throws IllegalArgumentException {
+    public Account(int rhsaccountID, double rhscurrent_balance) throws IllegalArgumentException {
         if(rhscurrent_balance<0){
             throw new IllegalArgumentException("current balance cannot be negative");
         }
-        this.db = rhsdb;
+        //DBHandler.getInstance() = rhsdb;
         this.accountID = rhsaccountID;
         this.current_balance = rhscurrent_balance; 
     }
@@ -53,22 +53,22 @@ public class Account {
     // inside transaction tag
     // have to check if there already has one
     // if not exist, error
-    public Account(DBHandler rhsdb, int rhsaccountID) throws SQLException {
-        checkExistedAccountandRefreshDB(rhsdb, rhsaccountID);
+    public Account(int rhsaccountID) throws SQLException {
+        checkExistedAccountandRefreshDB(rhsaccountID);
     }
 
     public void updateBalanceDB(int accountID, double money) throws SQLException {
 
         String sql = "UPDATE ACCOUNT SET CURRENT_BALANCE = " + money + " WHERE " +
         "ACCOUNT_ID = " + accountID + ";";
-        this.db.commit(sql);
+        DBHandler.getInstance().commit(sql);
     }
 
     public double findAmountofSymbolDB(String rhssymbolName) throws SQLException {
 
         String sql = "SELECT AMOUNT FROM POSITION WHERE ACCOUNT_ID = "+
         this.accountID + " AND SYMBOL_NAME = \'" + rhssymbolName + "\';";
-        ResultSet result = this.db.commitAndReturn(sql);
+        ResultSet result = DBHandler.getInstance().commitAndReturn(sql);
         if(!result.next()){
             throw new SQLException("cannot find the related position");
         }
@@ -78,7 +78,7 @@ public class Account {
 
     public double findBalanceByOrder(int rhsaccountID) throws SQLException {
         String sql = "SELECT CURRENT_BALANCE FROM ACCOUNT WHERE ACCOUNT_ID = " + rhsaccountID + ";";
-        ResultSet result = this.db.commitAndReturn(sql);
+        ResultSet result = DBHandler.getInstance().commitAndReturn(sql);
         if(!result.next()){
             throw new SQLException("cannot find the related current balance");
         }
@@ -93,7 +93,7 @@ public class Account {
         buyerorder.getLimitprice() + " AND STATUS = \'OPEN\' AND SYMBOL_NAME = \'" + buyerorder.getSymbolname() + "\' " +
         "AND ACCOUNT_ID <> " + buyerorder.getAccountID() +
         " ORDER BY LIMIT_PRICE ASC, CREATED_TIME ASC;";
-        ResultSet result = this.db.commitAndReturn(sql);
+        ResultSet result = DBHandler.getInstance().commitAndReturn(sql);
 
         while(result.next()){
 
@@ -105,7 +105,7 @@ public class Account {
             String tempsymbolName = result.getString("SYMBOL_NAME");
             int tempaccountID = result.getInt("ACCOUNT_ID");
             int temptransID = result.getInt("TRANS_ID");
-            MyOrder temporder = new MyOrder(buyerorder.getDB(), temporderID, temoamountPurchase, templimitPrice, tempstatus, tempcreatedTime, tempsymbolName, tempaccountID, temptransID);
+            MyOrder temporder = new MyOrder(temporderID, temoamountPurchase, templimitPrice, tempstatus, tempcreatedTime, tempsymbolName, tempaccountID, temptransID);
             matchedSellers.add(temporder);
 
         }
@@ -124,7 +124,7 @@ public class Account {
         sellerorder.getLimitprice() + " AND STATUS = \'OPEN\' AND SYMBOL_NAME = \'" + sellerorder.getSymbolname() + "\' " +
         "AND ACCOUNT_ID <> " + sellerorder.getAccountID() +
         " ORDER BY LIMIT_PRICE DESC, CREATED_TIME ASC;";
-        ResultSet result = this.db.commitAndReturn(sql);
+        ResultSet result = DBHandler.getInstance().commitAndReturn(sql);
 
         while(result.next()){
 
@@ -136,7 +136,7 @@ public class Account {
             String tempsymbolName = result.getString("SYMBOL_NAME");
             int tempaccountID = result.getInt("ACCOUNT_ID");
             int temptransID = result.getInt("TRANS_ID");
-            MyOrder temporder = new MyOrder(sellerorder.getDB(), temporderID, temoamountPurchase, templimitPrice, tempstatus, tempcreatedTime, tempsymbolName, tempaccountID, temptransID);
+            MyOrder temporder = new MyOrder(temporderID, temoamountPurchase, templimitPrice, tempstatus, tempcreatedTime, tempsymbolName, tempaccountID, temptransID);
             matchedBuyers.add(temporder);
         }
 
@@ -170,7 +170,7 @@ public class Account {
                     myorder.findnewestOrder(myorder.getID());
 
                     // delete or update position related
-                    Position position = new Position(this.db, myorder.getamountPurchase(), myorder.getSymbolname(), this.accountID);
+                    Position position = new Position(myorder.getamountPurchase(), myorder.getSymbolname(), this.accountID);
                     // update new position to db
                     position.createNewPositionDB();
                     
@@ -203,13 +203,13 @@ public class Account {
                     myorder.findnewestOrder(myorder.getID());
 
                     // delete or update position related
-                    Position position = new Position(this.db, (-1 * matchedSellers.get(i).getamountPurchase()), myorder.getSymbolname(), this.accountID);
+                    Position position = new Position((-1 * matchedSellers.get(i).getamountPurchase()), myorder.getSymbolname(), this.accountID);
                     // update new position to db
                     position.createNewPositionDB();
                     
                     // oepn 400 to
                     // open 100 and executed 300
-                    MyOrder executedorder = new MyOrder(this.db, (-1 * matchedSellers.get(i).getamountPurchase()), matchedSellers.get(i).getLimitprice(), "EXECUTED", Timestamp.from(Instant.now()), myorder.getSymbolname(), this.accountID, myorder.gettransID());
+                    MyOrder executedorder = new MyOrder((-1 * matchedSellers.get(i).getamountPurchase()), matchedSellers.get(i).getLimitprice(), "EXECUTED", Timestamp.from(Instant.now()), myorder.getSymbolname(), this.accountID, myorder.gettransID());
                     executedorder.createMyOrderDB();
                     // change from open to executed
                     double remainingamount = myorder.getamountPurchase() - (-1 * matchedSellers.get(i).getamountPurchase());
@@ -241,7 +241,7 @@ public class Account {
                     this.current_balance = extramoney;
 
                     // delete or update position related
-                    Position position = new Position(this.db, myorder.getamountPurchase(), myorder.getSymbolname(), this.accountID);
+                    Position position = new Position(myorder.getamountPurchase(), myorder.getSymbolname(), this.accountID);
                     // update new position to db
                     position.createNewPositionDB();
                     
@@ -249,7 +249,7 @@ public class Account {
                     // executed 400 and sell 100
                     myorder.symbolUpdateStatusDB("EXECUTED");
                     // change from open to executed
-                    MyOrder executedorder = new MyOrder(matchedSellers.get(i).getDB(), (-1 * myorder.getamountPurchase()), matchedSellers.get(i).getLimitprice(), "EXECUTED", Timestamp.from(Instant.now()), myorder.getSymbolname(), matchedSellers.get(i).getAccountID(), matchedSellers.get(i).gettransID());
+                    MyOrder executedorder = new MyOrder((-1 * myorder.getamountPurchase()), matchedSellers.get(i).getLimitprice(), "EXECUTED", Timestamp.from(Instant.now()), myorder.getSymbolname(), matchedSellers.get(i).getAccountID(), matchedSellers.get(i).gettransID());
                     executedorder.createMyOrderDB();
                     double remainingamount = matchedSellers.get(i).getamountPurchase() + myorder.getamountPurchase();
                     if(remainingamount>=0){
@@ -289,7 +289,7 @@ public class Account {
 
                     // update buyer
                     // delete or update position related
-                    Position position = new Position(matchedBuyers.get(i).getDB(), matchedBuyers.get(i).getamountPurchase(), matchedBuyers.get(i).getSymbolname(), matchedBuyers.get(i).getAccountID());
+                    Position position = new Position(matchedBuyers.get(i).getamountPurchase(), matchedBuyers.get(i).getSymbolname(), matchedBuyers.get(i).getAccountID());
                     // update new position to db
                     position.createNewPositionDB();
                     
@@ -317,13 +317,13 @@ public class Account {
 
                     // update buyer
                     // delete or update position related
-                    Position position = new Position(matchedBuyers.get(i).getDB(), (-1 * myorder.getamountPurchase()), matchedBuyers.get(i).getSymbolname(), matchedBuyers.get(i).getAccountID());
+                    Position position = new Position((-1 * myorder.getamountPurchase()), matchedBuyers.get(i).getSymbolname(), matchedBuyers.get(i).getAccountID());
                     // update new position to db
                     position.createNewPositionDB();
                     
                     // oepn 400 to
                     // open 100 and executed 300
-                    MyOrder executedorder = new MyOrder(matchedBuyers.get(i).getDB(), (-1 * myorder.getamountPurchase()), matchedBuyers.get(i).getLimitprice(), "EXECUTED", Timestamp.from(Instant.now()), matchedBuyers.get(i).getSymbolname(), matchedBuyers.get(i).getAccountID(), matchedBuyers.get(i).gettransID());
+                    MyOrder executedorder = new MyOrder((-1 * myorder.getamountPurchase()), matchedBuyers.get(i).getLimitprice(), "EXECUTED", Timestamp.from(Instant.now()), matchedBuyers.get(i).getSymbolname(), matchedBuyers.get(i).getAccountID(), matchedBuyers.get(i).gettransID());
                     executedorder.createMyOrderDB();
                     // change from open to executed
                     double remainingamount = matchedBuyers.get(i).getamountPurchase() - (-1 * myorder.getamountPurchase());
@@ -353,7 +353,7 @@ public class Account {
 
                     // update buyer
                     // delete or update position related
-                    Position position = new Position(matchedBuyers.get(i).getDB(), matchedBuyers.get(i).getamountPurchase(), matchedBuyers.get(i).getSymbolname(), matchedBuyers.get(i).getAccountID());
+                    Position position = new Position( matchedBuyers.get(i).getamountPurchase(), matchedBuyers.get(i).getSymbolname(), matchedBuyers.get(i).getAccountID());
                     // update new position to db
                     position.createNewPositionDB();
                     
@@ -361,7 +361,7 @@ public class Account {
                     // executed 400 and sell 100
                     matchedBuyers.get(i).symbolUpdateStatusDB("EXECUTED");
                     // change from open to executed
-                    MyOrder executedorder = new MyOrder(myorder.getDB(), (-1 * matchedBuyers.get(i).getamountPurchase()), matchedBuyers.get(i).getLimitprice(), "EXECUTED", Timestamp.from(Instant.now()), myorder.getSymbolname(), myorder.getAccountID(), myorder.gettransID());
+                    MyOrder executedorder = new MyOrder((-1 * matchedBuyers.get(i).getamountPurchase()), matchedBuyers.get(i).getLimitprice(), "EXECUTED", Timestamp.from(Instant.now()), myorder.getSymbolname(), myorder.getAccountID(), myorder.gettransID());
                     executedorder.createMyOrderDB();
                     double remainingamount = myorder.getamountPurchase() + matchedBuyers.get(i).getamountPurchase();
                     if(remainingamount>=0){
@@ -390,7 +390,7 @@ public class Account {
     // amount > 0 buy or < 0 sell
     // MyOrder(DBHandler rhsdb, double rhsamountPurchase, double rhslimitPrice, String rhsstatus,
     // Timestamp rhscreatedTime, String rhssymbolName, int rhsaccountID, int rhstransID)
-    public int createOrderStep1(String rhssymbolName, double rhsamountPurchase, double rhslimitPrice) throws SQLException, IllegalArgumentException {
+    public synchronized int createOrderStep1(String rhssymbolName, double rhsamountPurchase, double rhslimitPrice) throws SQLException, IllegalArgumentException {
 
         int originaltransactionid = 0;
         boolean tf = false;
@@ -415,11 +415,11 @@ public class Account {
                 // update balance from account first
                 updateBalanceDB(this.accountID, this.current_balance);
                 // crate new transaction
-                Transaction transaction = new Transaction(this.db, this.accountID);
+                Transaction transaction = new Transaction(this.accountID);
                 // update new transaction to db
                 transaction.createTransactionDB();
                 // create new order
-                MyOrder myorder = new MyOrder(this.db, rhsamountPurchase, rhslimitPrice, "OPEN", Timestamp.from(Instant.now()), rhssymbolName, this.accountID, transaction.getID());
+                MyOrder myorder = new MyOrder(rhsamountPurchase, rhslimitPrice, "OPEN", Timestamp.from(Instant.now()), rhssymbolName, this.accountID, transaction.getID());
                 // update new order to db
                 myorder.createMyOrderDB();
                 
@@ -439,17 +439,17 @@ public class Account {
             if(((-1) * rhsamountPurchase) <= amountofSymbol){
                 
                 // delete or update position related
-                Position.findOldPositionDirectlyDB(this.db, this.accountID, rhssymbolName);
-                Position position = new Position(this.db, rhsamountPurchase, rhssymbolName, this.accountID, true);
+                Position.findOldPositionDirectlyDB(this.accountID, rhssymbolName);
+                Position position = new Position(rhsamountPurchase, rhssymbolName, this.accountID, true);
                 // update new position to db
                 position.createNewPositionDB();
 
                 // crate new transaction
-                Transaction transaction = new Transaction(this.db, this.accountID);
+                Transaction transaction = new Transaction(this.accountID);
                 // update new transaction to db
                 transaction.createTransactionDB();
                 // create new order
-                MyOrder myorder = new MyOrder(this.db, rhsamountPurchase, rhslimitPrice, "OPEN", Timestamp.from(Instant.now()), rhssymbolName, this.accountID, transaction.getID());
+                MyOrder myorder = new MyOrder(rhsamountPurchase, rhslimitPrice, "OPEN", Timestamp.from(Instant.now()), rhssymbolName, this.accountID, transaction.getID());
                 // update new order to db
                 myorder.createMyOrderDB();
                 
@@ -475,14 +475,14 @@ public class Account {
         ArrayList<MyOrder> orderarr = new ArrayList<>();
 
         String sql0 = "SELECT * FROM TRANSACTION WHERE TRANS_ID = " + rhstransID + ";";
-        ResultSet result0 = this.db.commitAndReturn(sql0);
+        ResultSet result0 = DBHandler.getInstance().commitAndReturn(sql0);
         if(!result0.next()){
             throw new SQLException("cannot find this transaction");
         }
 
         String sql = "SELECT * FROM MYORDER WHERE ACCOUNT_ID = " + this.accountID +
         " AND TRANS_ID = " + rhstransID + " AND STATUS = \'" + rhsstatus + "\';";
-        ResultSet result = this.db.commitAndReturn(sql);
+        ResultSet result = DBHandler.getInstance().commitAndReturn(sql);
 
         while(result.next()){
 
@@ -494,7 +494,7 @@ public class Account {
             String tempsymbolName = result.getString("SYMBOL_NAME");
             int tempaccountID = result.getInt("ACCOUNT_ID");
             int temptransID = result.getInt("TRANS_ID");
-            MyOrder temporder = new MyOrder(this.db, temporderID, temoamountPurchase, templimitPrice, tempstatus, tempcreatedTime, tempsymbolName, tempaccountID, temptransID);
+            MyOrder temporder = new MyOrder(temporderID, temoamountPurchase, templimitPrice, tempstatus, tempcreatedTime, tempsymbolName, tempaccountID, temptransID);
             orderarr.add(temporder);
 
         }
@@ -507,7 +507,7 @@ public class Account {
 
         String sql = "SELECT * FROM MYORDER WHERE ACCOUNT_ID = " + this.accountID +
         " AND TRANS_ID = " + rhstransID + " AND STATUS = \'OPEN\';";
-        ResultSet result = this.db.commitAndReturn(sql);
+        ResultSet result = DBHandler.getInstance().commitAndReturn(sql);
         if(result.next()){
 
             int temporderID = result.getInt("ORDER_ID");
@@ -518,12 +518,12 @@ public class Account {
             String tempsymbolName = result.getString("SYMBOL_NAME");
             int tempaccountID = result.getInt("ACCOUNT_ID");
             int temptransID = result.getInt("TRANS_ID");
-            MyOrder temporder = new MyOrder(this.db, temporderID, temoamountPurchase, templimitPrice, tempstatus, tempcreatedTime, tempsymbolName, tempaccountID, temptransID);
+            MyOrder temporder = new MyOrder(temporderID, temoamountPurchase, templimitPrice, tempstatus, tempcreatedTime, tempsymbolName, tempaccountID, temptransID);
 
             String sql2 = "UPDATE MYORDER SET STATUS = \'CANCELED\', CREATED_TIME = \'" + Timestamp.from(Instant.now()) +
             "\' WHERE ACCOUNT_ID = " + this.accountID +
             " AND TRANS_ID = " + rhstransID + " AND ORDER_ID = " + temporder.getID() + ";";
-            this.db.commit(sql2);
+            DBHandler.getInstance().commit(sql2);
 
             // buyer
             if(temporder.getamountPurchase()>0){
@@ -535,7 +535,7 @@ public class Account {
             }else if(temporder.getamountPurchase()<0){
                 // seller
                 // delete or update position related
-                Position position = new Position(this.db, (-1 * temporder.getamountPurchase()), temporder.getSymbolname(), this.accountID);
+                Position position = new Position((-1 * temporder.getamountPurchase()), temporder.getSymbolname(), this.accountID);
                 // update new position to db
                 position.createNewPositionDB();
 

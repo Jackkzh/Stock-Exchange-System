@@ -19,7 +19,7 @@ public class XMLParserTest {
 //        Shared.cleanAllTables(jdbc);
         DBHandler db = DBHandler.getInstance();
         db.createDBHandler();
-        XMLParser parser = new XMLParser(db);
+        XMLParser parser = new XMLParser();
         String response = parser.responseMessage;
         //System.out.println(response);
 

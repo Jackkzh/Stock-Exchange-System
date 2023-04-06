@@ -87,7 +87,7 @@ public class XMLParser {
             transformer.transform(new DOMSource(responseXML), new StreamResult(writer));
             String result = writer.getBuffer().toString().replaceAll("\n|\r", "");
             responseMessage = result;
-            System.out.println("this is in chcekvalid");
+            //System.out.println("this is in chcekvalid");
 
             return;
         }
@@ -146,7 +146,7 @@ public class XMLParser {
         }
 
         responseMessage = makeXML(responseXML);
-        System.out.println(responseMessage);
+        //System.out.println(responseMessage);
 //// 将 DOMSource 转换为 StreamResult
 //        DOMSource source = new DOMSource(responseXML);
 //        StringWriter writer = new StringWriter();
@@ -165,21 +165,35 @@ public class XMLParser {
      * This function is used to parse and process 'create' operation
      * @param nodeList
      */
-    public void processCreateXML(NodeList nodeList, Document responseXML) throws SQLException {
+    public void processCreateXML(NodeList nodeList, Document responseXML) throws TransformerException, SQLException {
         // process each node in nodeList, check
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node node = nodeList.item(i);
             if (node.getNodeType() == Node.ELEMENT_NODE) {
                 Element element = (Element) node;
                 String nodeName = element.getNodeName();
-                if (nodeName.equals("account")) {
-                    // print in processCreateXML
-                    //System.out.println("processCreateXML....");
-                    processAccountXML(element, responseXML);
-                } else if (nodeName.equals("symbol")) {
-                    // get symbol sym name
-                    String symName = element.getAttribute("sym");
-                    processSymbol(element, responseXML);
+                try {
+                    if (nodeName.equals("account")) {
+                        // print in processCreateXML
+                        //System.out.println("processCreateXML....");
+                        processAccountXML(element, responseXML);
+                    } else if (nodeName.equals("symbol")) {
+                        // get symbol sym name
+                        String symName = element.getAttribute("sym");
+                        processSymbol(element, responseXML);
+                    } else {
+                        System.out.println("error in processCreateXML");
+                        throw new IllegalArgumentException("XML only accepts account or symbol.");
+                    }
+                } catch (IllegalArgumentException e) {
+                    //System.out.println("error in processCreateXML");
+                    String errorMsg = e.getMessage();
+                    Element error = responseXML.createElement("error");
+                    error.appendChild(responseXML.createTextNode(errorMsg));
+                    Element responseRoot = responseXML.getDocumentElement();
+                    responseRoot.appendChild(error);
+                    responseMessage = makeXML(responseXML);
+                    return;
                 }
             }
         }
@@ -192,7 +206,7 @@ public class XMLParser {
      * @param responseXML the responseXML to be added
      * @throws InvalidParameterException
      */
-    public void processAccountXML(Element element, Document responseXML) throws InvalidParameterException, SQLException {
+    public void processAccountXML(Element element, Document responseXML) throws TransformerException,InvalidParameterException, SQLException {
         try {
             int id = Integer.parseInt(element.getAttribute("id"));
             double balance = Double.parseDouble(element.getAttribute("balance"));
@@ -203,6 +217,7 @@ public class XMLParser {
             Element created = responseXML.createElement("error");
             created.appendChild(responseXML.createTextNode(errorMsg));
             responseXML.appendChild(created);
+            responseMessage = makeXML(responseXML);
             return;
         }
 
@@ -229,6 +244,7 @@ public class XMLParser {
             // get root of responseXML
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(created);
+            responseMessage = makeXML(responseXML);
         } catch (SQLException e) {
             // 改 db错？
             // throw?
@@ -238,16 +254,17 @@ public class XMLParser {
 //            } catch (SQLException e1) {
 //               System.out.println("wuwuwuuwuwuw");
 //            }
-            System.out.println("Fdafdfsaf");
+            //System.out.println("Fdafdfsaf");
             String errorMsg = e.getMessage();
-            System.out.println(errorMsg);
+            //System.out.println(errorMsg);
             Element created = responseXML.createElement("error");
             //int id = Integer.parseInt(element.getAttribute("id"));
             created.setAttribute("id", Integer.toString(accountID));
             created.appendChild(responseXML.createTextNode(errorMsg));
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(created);
-            System.out.println("error in processAccountXML");
+            responseMessage = makeXML(responseXML);
+            //System.out.println("error in processAccountXML");
         }
     }
 
@@ -257,7 +274,8 @@ public class XMLParser {
      * @param element the element to be processed
      * @param responseXML the response XML
      */
-    public void processSymbol(Element element, Document responseXML) throws InvalidParameterException , SQLException {
+    public void processSymbol(Element element, Document responseXML) throws InvalidParameterException , SQLException,
+            TransformerException {
 
         String symName = element.getAttribute("sym");
         NodeList symbolList = element.getChildNodes();
@@ -271,6 +289,7 @@ public class XMLParser {
             created.appendChild(responseXML.createTextNode(errorMsg));
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(created);
+            responseMessage = makeXML(responseXML);
 
         }
         try {
@@ -288,7 +307,7 @@ public class XMLParser {
                         // createSymbol(.....); // error when symbol is already created
                         // 改
                         DBHandler.getInstance().getC().setAutoCommit(false);
-                        Position position = new Position(this.db,num,symName,id);
+                        Position position = new Position(num,symName,id);
                         position.createNewPositionDB();
                         DBHandler.getInstance().getC().commit();
 
@@ -298,9 +317,11 @@ public class XMLParser {
                         created.setAttribute("id", Integer.toString(id));
                         Element responseRoot = responseXML.getDocumentElement();
                         responseRoot.appendChild(created);
+
                     }
                 }
             }
+            responseMessage = makeXML(responseXML);
         } catch (NumberFormatException e) {
             String errorMsg = e.getMessage();
             Element created = responseXML.createElement("error");
@@ -311,8 +332,8 @@ public class XMLParser {
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(created);
 
-        } catch (Exception e) {
 
+        } catch (Exception e) {
             // 改 db错？
             // throw?
             DBHandler.getInstance().getC().rollback();
@@ -325,10 +346,10 @@ public class XMLParser {
             created.appendChild(responseXML.createTextNode(errorMsg));
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(created);
+            responseMessage = makeXML(responseXML);
         }
 
     }
-
 
 
 
@@ -336,9 +357,10 @@ public class XMLParser {
      * This function is used to parse and process 'transactions' operation
      * @param nodeList the list of nodes to be processed
      * @param root the root element (which is 'transactions')
-     * @ param responseXML the response XML
+     * @param responseXML the response XML
+     * @throws InvalidParameterException
      */
-    public void processTransactionsXML(NodeList nodeList, Element root, Document responseXML) throws InvalidParameterException {
+    public void processTransactionsXML(NodeList nodeList, Element root, Document responseXML) throws TransformerException, InvalidParameterException {
 
         try {
             int AccountID = Integer.parseInt(root.getAttribute("id"));
@@ -372,6 +394,8 @@ public class XMLParser {
                         String TransID = element.getAttribute("sym");
                         // query order API
                         queryOrder(accountID, element, responseXML);
+                    } else {
+                        throw new InvalidParameterException("Invalid operation in transactions");
                     }
                 } catch (NumberFormatException e) {
                     String errorMsg = e.getMessage();
@@ -379,8 +403,13 @@ public class XMLParser {
                     created.appendChild(responseXML.createTextNode(errorMsg));
                     Element responseRoot = responseXML.getDocumentElement();
                     responseRoot.appendChild(created);
+                } catch (InvalidParameterException e) {
+                    String errorMsg = e.getMessage();
+                    Element created = responseXML.createElement("error");
+                    created.appendChild(responseXML.createTextNode(errorMsg));
+                    Element responseRoot = responseXML.getDocumentElement();
+                    responseRoot.appendChild(created);
                 } catch (Exception e) {
-
                     String errorMsg = e.getMessage();
                     Element created = responseXML.createElement("error");
                     created.appendChild(responseXML.createTextNode(errorMsg));
@@ -389,10 +418,19 @@ public class XMLParser {
                 }
             }
         }
+        responseMessage = makeXML(responseXML);
     }
 
-
-    public void openOrder(int accountID, Element element, Document responseXML) throws InvalidParameterException, SQLException {
+    /**
+     * This function is used to parse and process 'query' operation
+     * @param accountID the ID of current account
+     * @param element the element to be processed
+     * @param responseXML the response XML
+     * @throws InvalidParameterException
+     * @throws SQLException
+     */
+    public void openOrder(int accountID, Element element, Document responseXML) throws InvalidParameterException,
+            SQLException, TransformerException {
         try {
             String sym = element.getAttribute("sym");
             double amount = Double.parseDouble(element.getAttribute("amount"));
@@ -404,6 +442,7 @@ public class XMLParser {
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(created);
         }
+
         String sym = element.getAttribute("sym");
         double amount = Double.parseDouble(element.getAttribute("amount"));
         double limits = Double.parseDouble(element.getAttribute("limit"));
@@ -412,11 +451,9 @@ public class XMLParser {
             /**
              * open order method
              */
-            // call open-order method
-
             // 改
             DBHandler.getInstance().getC().setAutoCommit(false);
-            Account account = new Account(this.db, accountID);
+            Account account = new Account(accountID);
             // transactionID 记得调用
             int transactionID = account.createOrderStep1(sym, amount, limits);
             DBHandler.getInstance().getC().commit();
@@ -425,8 +462,10 @@ public class XMLParser {
             opened.setAttribute("sym", sym);
             opened.setAttribute("amount", Double.toString(amount));
             opened.setAttribute("limit", Double.toString(limits));
+            opened.setAttribute("id", Integer.toString(transactionID));
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(opened);
+            responseMessage = makeXML(responseXML);
         } catch ( Exception e) {
 
             // 改 db错？
@@ -441,10 +480,11 @@ public class XMLParser {
             opened.appendChild(responseXML.createTextNode(errorMsg));
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(opened);
+            responseMessage = makeXML(responseXML);
         }
     }
 
-    public void queryOrder(int accountID, Element element, Document responseXML) throws SQLException {
+    public void queryOrder(int accountID, Element element, Document responseXML) throws SQLException, TransformerException {
         try {
             int transID = Integer.parseInt(element.getAttribute("id"));
         } catch (NumberFormatException e) {
@@ -453,11 +493,12 @@ public class XMLParser {
             created.appendChild(responseXML.createTextNode(errorMsg));
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(created);
+            responseMessage = makeXML(responseXML);
         }
         int transID = Integer.parseInt(element.getAttribute("id"));
-        String sym = element.getAttribute("sym");
-        double amount = Double.parseDouble(element.getAttribute("amount"));
-        double limits = Double.parseDouble(element.getAttribute("limit"));
+//        String sym = element.getAttribute("sym");
+//        double amount = Double.parseDouble(element.getAttribute("amount"));
+//        double limits = Double.parseDouble(element.getAttribute("limit"));
         try {
             /**
              * query order method
@@ -465,7 +506,7 @@ public class XMLParser {
             // call query-order method
             // 改
             DBHandler.getInstance().getC().setAutoCommit(false);
-            Account account = new Account(this.db, accountID);
+            Account account = new Account(accountID);
             ArrayList<MyOrder> orderarrOpen = new ArrayList<>();
             ArrayList<MyOrder> orderarrExecuted = new ArrayList<>();
             ArrayList<MyOrder> orderarrCanceled = new ArrayList<>();
@@ -474,31 +515,53 @@ public class XMLParser {
             orderarrCanceled = account.getQuery(transID, "CANCELED");
             DBHandler.getInstance().getC().commit();
 
-            Element queried = responseXML.createElement("error");
-            queried.setAttribute("sym", sym);
-            queried.setAttribute("amount", Double.toString(amount));
-            queried.setAttribute("limit", Double.toString(limits));
+
+            Element status = responseXML.createElement("status");
+            status.setAttribute("id", Integer.toString(transID));
+
+
+            for (int i = 0; i < orderarrOpen.size(); i++) {
+                Element open = responseXML.createElement("open");
+                open.setAttribute("shares", Double.toString(orderarrOpen.get(i).getamountPurchase()));
+                status.appendChild(open);
+            }
+
+            for (int i = 0; i < orderarrCanceled.size(); i++) {
+                Element executed = responseXML.createElement("canceled");
+                executed.setAttribute("shares", Double.toString(orderarrCanceled.get(i).getamountPurchase()));
+                // convert a timestamp called A to string
+                executed.setAttribute("time", orderarrCanceled.get(i).getCreatedTime().toString());
+                status.appendChild(executed);
+            }
+            for (int i = 0; i < orderarrExecuted.size(); i++) {
+                Element canceled = responseXML.createElement("executed");
+                canceled.setAttribute("shares", Double.toString(orderarrExecuted.get(i).getamountPurchase()));
+                canceled.setAttribute("price", Double.toString(orderarrExecuted.get(i).getLimitprice()));
+                // convert a timestamp called A to string
+                canceled.setAttribute("time", orderarrExecuted.get(i).getCreatedTime().toString());
+                status.appendChild(canceled);
+            }
             Element responseRoot = responseXML.getDocumentElement();
-            responseRoot.appendChild(queried);
+            responseRoot.appendChild(status);
+            responseMessage = makeXML(responseXML);
+
 
         } catch ( Exception e) {
-
             // 改 db错？
             // throw?
             DBHandler.getInstance().getC().rollback();
 
             String errorMsg = e.getMessage();
             Element queried = responseXML.createElement("error");
-            queried.setAttribute("sym", sym);
-            queried.setAttribute("amount", Double.toString(amount));
-            queried.setAttribute("limit", Double.toString(limits));
+            queried.setAttribute("id", Integer.toString(transID));
             queried.appendChild(responseXML.createTextNode(errorMsg));
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(queried);
+            responseMessage = makeXML(responseXML);
         }
     }
 
-    public void cancelOrder(int accountID, Element element, Document responseXML) throws SQLException {
+    public void cancelOrder(int accountID, Element element, Document responseXML) throws SQLException, TransformerException {
         try {
             int transID = Integer.parseInt(element.getAttribute("id"));
         } catch (NumberFormatException e) {
@@ -507,6 +570,7 @@ public class XMLParser {
             created.appendChild(responseXML.createTextNode(errorMsg));
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(created);
+            responseMessage = makeXML(responseXML);
         }
         int transID = Integer.parseInt(element.getAttribute("id"));
         try {
@@ -515,26 +579,39 @@ public class XMLParser {
              */
 
             // 改
-            this.db.getC().setAutoCommit(false);
-            Account account = new Account(this.db, accountID);
+            DBHandler.getInstance().getC().setAutoCommit(false);
+            Account account = new Account(accountID);
             account.getCancel(transID);
-            ArrayList<MyOrder> orderarrOpen = new ArrayList<>();
             ArrayList<MyOrder> orderarrExecuted = new ArrayList<>();
             ArrayList<MyOrder> orderarrCanceled = new ArrayList<>();
-            orderarrOpen = account.getQuery(transID, "OPEN");
+
             orderarrExecuted = account.getQuery(transID, "EXECUTED");
             orderarrCanceled = account.getQuery(transID, "CANCELED");
             DBHandler.getInstance().getC().commit();
 
-            Element node = responseXML.createElement("caceled");
-            node.setAttribute("id", Integer.toString(transID));
-
             // loop to add all canceled lines here
 
+            Element status = responseXML.createElement("status");
+            status.setAttribute("id", Integer.toString(transID));
+
+            for (int i = 0; i < orderarrCanceled.size(); i++) {
+                Element executed = responseXML.createElement("canceled");
+                executed.setAttribute("shares", Double.toString(orderarrCanceled.get(i).getamountPurchase()));
+                // convert a timestamp called A to string
+                executed.setAttribute("time", orderarrCanceled.get(i).getCreatedTime().toString());
+                status.appendChild(executed);
+            }
+            for (int i = 0; i < orderarrExecuted.size(); i++) {
+                Element canceled = responseXML.createElement("executed");
+                canceled.setAttribute("shares", Double.toString(orderarrExecuted.get(i).getamountPurchase()));
+                canceled.setAttribute("price", Double.toString(orderarrExecuted.get(i).getLimitprice()));
+                // convert a timestamp called A to string
+                canceled.setAttribute("time", orderarrExecuted.get(i).getCreatedTime().toString());
+                status.appendChild(canceled);
+            }
             Element responseRoot = responseXML.getDocumentElement();
-            responseRoot.appendChild(node);
-
-
+            responseRoot.appendChild(status);
+            responseMessage = makeXML(responseXML);
 
             // call cancel-order method
         } catch (Exception e) {
@@ -549,6 +626,7 @@ public class XMLParser {
             canceled.appendChild(responseXML.createTextNode(errorMsg));
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(canceled);
+            responseMessage = makeXML(responseXML);
         }
     }
 
@@ -578,7 +656,7 @@ public class XMLParser {
         try{
             //DBHandler db = DBHandler.getInstance();
             DBHandler.getInstance().createDBHandler();
-            XMLParser xmlParser = new XMLParser(db);
+            XMLParser xmlParser = new XMLParser();
             xmlParser.parseXML(xml);
             DBHandler.getInstance().getC().close();
         }catch(Exception e){

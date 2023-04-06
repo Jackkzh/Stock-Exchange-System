@@ -6,26 +6,26 @@ import java.sql.DriverManager;
 
 public class Position {
 
-    private DBHandler db;
+    //private DBHandler db;
     private int positionID;
     private double amount;
     private String symbol_name;
     private int accountID;
 
     // for transaction
-    public Position(DBHandler rhsdb, double rhsamount, String rhssymbol_name, int rhsaccountID, boolean tf){
-        this.db = rhsdb;
+    public Position(double rhsamount, String rhssymbol_name, int rhsaccountID, boolean tf){
+        //this.db = rhsdb;
         this.amount = rhsamount;
         this.symbol_name = rhssymbol_name;
         this.accountID = rhsaccountID;
     }
 
-    public Position(DBHandler rhsdb, double rhsamount, String rhssymbol_name, int rhsaccountID) throws IllegalArgumentException {
+    public Position(double rhsamount, String rhssymbol_name, int rhsaccountID) throws IllegalArgumentException {
 
         if(rhsamount <= 0){
             throw new IllegalArgumentException("amount cannot be 0 or negative");
         }
-        this.db = rhsdb;
+        //this.db = rhsdb;
         this.amount = rhsamount;
         this.symbol_name = rhssymbol_name;
         this.accountID = rhsaccountID;
@@ -39,10 +39,10 @@ public class Position {
         return this.amount;
     }
 
-    static void findOldPositionDirectlyDB(DBHandler rhsdb, int rhsaccountID, String rhssymbol_name) throws SQLException {
+    static void findOldPositionDirectlyDB(int rhsaccountID, String rhssymbol_name) throws SQLException {
         String sql = "SELECT * FROM POSITION WHERE ACCOUNT_ID = " + rhsaccountID + 
         " AND SYMBOL_NAME = \'" + rhssymbol_name + "\';";
-        ResultSet result = rhsdb.commitAndReturn(sql);
+        ResultSet result = DBHandler.getInstance().commitAndReturn(sql);
         if(!result.next()){
             throw new SQLException("cannot find the existed position tuple");
         }
@@ -51,21 +51,21 @@ public class Position {
     public ResultSet findOldPositionDB() throws SQLException {
         String sql = "SELECT * FROM POSITION WHERE ACCOUNT_ID = " + this.accountID + 
         " AND SYMBOL_NAME = \'" + this.symbol_name + "\';";
-        ResultSet result = this.db.commitAndReturn(sql);
+        ResultSet result = DBHandler.getInstance().commitAndReturn(sql);
         return result;
     }
 
     public void deletePositionDB() throws SQLException {
         String sql = "DELETE FROM POSITION WHERE ACCOUNT_ID = " + this.accountID +
         " AND SYMBOL_NAME = \'" + this.symbol_name + "\';";
-        this.db.commit(sql);
+        DBHandler.getInstance().commit(sql);
     }
 
     public void updateAmountofPositionDB(double newamount) throws SQLException {
         String sql = "UPDATE POSITION SET AMOUNT = " + newamount + " WHERE " +
         "ACCOUNT_ID = " + this.accountID +
         " AND SYMBOL_NAME = \'" + this.symbol_name + "\';";
-        this.db.commit(sql);
+        DBHandler.getInstance().commit(sql);
     }
 
     // 用的时候一定要注意上级method需要有个try catch
@@ -78,7 +78,7 @@ public class Position {
             "(AMOUNT, SYMBOL_NAME, ACCOUNT_ID) VALUES (" +
             this.amount + ", \'" +
             this.symbol_name + "\', " + this.accountID + ") RETURNING POSITION_ID;";
-            ResultSet result = this.db.commitAndReturn(sql);
+            ResultSet result = DBHandler.getInstance().commitAndReturn(sql);
             if(result.next()){
                 this.positionID = result.getInt("POSITION_ID");
             }else{
