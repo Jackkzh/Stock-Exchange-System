@@ -16,6 +16,7 @@ import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 public class Server {
+
     public static void main(String[] args) throws Exception {
         // creates two multi-thread groups
         // BossGroup is responsible for listening and accepting new incoming connections from clients
@@ -58,6 +59,8 @@ public class Server {
             channelFuture.channel().closeFuture().sync();
         } finally {
             //关闭服务器的两个线程池，释放线程池占用的资源。
+            System.out.println("Stock Exchange Server is offline!");
+
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }

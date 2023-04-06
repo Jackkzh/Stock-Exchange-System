@@ -23,12 +23,12 @@ import java.sql.Statement;
 
 public class XMLParser {
     // 改
-    public DBHandler db;
+    //public DBHandler db;
     public String responseMessage;
 
-    public XMLParser(DBHandler rhsdb) {
-        this.db = rhsdb;
-    }
+//    public XMLParser(DBHandler rhsdb) {
+//        this.db = rhsdb;
+//    }
 
     public String getResponseMessage() {
         return responseMessage;
@@ -217,10 +217,10 @@ public class XMLParser {
             //createAccount(.....); // error when account is already created
 
             // 改
-            this.db.getC().setAutoCommit(false);
-            Account account = new Account(this.db, accountID, balance);
+            DBHandler.getInstance().getC().setAutoCommit(false);
+            Account account = new Account(accountID, balance);
             account.createNewAccountDB();
-            this.db.getC().commit();
+            DBHandler.getInstance().getC().commit();
 
             // write a message in syntax "<created id="ACCOUNT_ID"/>" ,and add to ResponseXML
             Element created = responseXML.createElement("created");
@@ -232,15 +232,22 @@ public class XMLParser {
         } catch (SQLException e) {
             // 改 db错？
             // throw?
-            System.out.println("in hereeeeeee");
-            this.db.getC().rollback();
+//            System.out.println("dslfjhkfhdskfhjfhasdf");
+//            try {
+            DBHandler.getInstance().getC().rollback();
+//            } catch (SQLException e1) {
+//               System.out.println("wuwuwuuwuwuw");
+//            }
+            System.out.println("Fdafdfsaf");
             String errorMsg = e.getMessage();
+            System.out.println(errorMsg);
             Element created = responseXML.createElement("error");
             //int id = Integer.parseInt(element.getAttribute("id"));
             created.setAttribute("id", Integer.toString(accountID));
             created.appendChild(responseXML.createTextNode(errorMsg));
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(created);
+            System.out.println("error in processAccountXML");
         }
     }
 
@@ -280,10 +287,10 @@ public class XMLParser {
 
                         // createSymbol(.....); // error when symbol is already created
                         // 改
-                        this.db.getC().setAutoCommit(false);
+                        DBHandler.getInstance().getC().setAutoCommit(false);
                         Position position = new Position(this.db,num,symName,id);
                         position.createNewPositionDB();
-                        this.db.getC().commit();
+                        DBHandler.getInstance().getC().commit();
 
                         // write a message to ResponseXML
                         Element created = responseXML.createElement("created");
@@ -308,7 +315,7 @@ public class XMLParser {
 
             // 改 db错？
             // throw?
-            this.db.getC().rollback();
+            DBHandler.getInstance().getC().rollback();
 
             String errorMsg = e.getMessage();
             Element created = responseXML.createElement("error");
@@ -408,11 +415,11 @@ public class XMLParser {
             // call open-order method
 
             // 改
-            this.db.getC().setAutoCommit(false);
+            DBHandler.getInstance().getC().setAutoCommit(false);
             Account account = new Account(this.db, accountID);
             // transactionID 记得调用
             int transactionID = account.createOrderStep1(sym, amount, limits);
-            this.db.getC().commit();
+            DBHandler.getInstance().getC().commit();
 
             Element opened = responseXML.createElement("opened");
             opened.setAttribute("sym", sym);
@@ -424,7 +431,7 @@ public class XMLParser {
 
             // 改 db错？
             // throw?
-            this.db.getC().rollback();
+            DBHandler.getInstance().getC().rollback();
 
             String errorMsg = e.getMessage();
             Element opened = responseXML.createElement("error");
@@ -457,7 +464,7 @@ public class XMLParser {
              */
             // call query-order method
             // 改
-            this.db.getC().setAutoCommit(false);
+            DBHandler.getInstance().getC().setAutoCommit(false);
             Account account = new Account(this.db, accountID);
             ArrayList<MyOrder> orderarrOpen = new ArrayList<>();
             ArrayList<MyOrder> orderarrExecuted = new ArrayList<>();
@@ -465,7 +472,7 @@ public class XMLParser {
             orderarrOpen = account.getQuery(transID, "OPEN");
             orderarrExecuted = account.getQuery(transID, "EXECUTED");
             orderarrCanceled = account.getQuery(transID, "CANCELED");
-            this.db.getC().commit();
+            DBHandler.getInstance().getC().commit();
 
             Element queried = responseXML.createElement("error");
             queried.setAttribute("sym", sym);
@@ -478,7 +485,7 @@ public class XMLParser {
 
             // 改 db错？
             // throw?
-            this.db.getC().rollback();
+            DBHandler.getInstance().getC().rollback();
 
             String errorMsg = e.getMessage();
             Element queried = responseXML.createElement("error");
@@ -517,7 +524,7 @@ public class XMLParser {
             orderarrOpen = account.getQuery(transID, "OPEN");
             orderarrExecuted = account.getQuery(transID, "EXECUTED");
             orderarrCanceled = account.getQuery(transID, "CANCELED");
-            this.db.getC().commit();
+            DBHandler.getInstance().getC().commit();
 
             Element node = responseXML.createElement("caceled");
             node.setAttribute("id", Integer.toString(transID));
@@ -534,7 +541,7 @@ public class XMLParser {
 
             // 改 db错？
             // throw?
-            this.db.getC().rollback();
+            DBHandler.getInstance().getC().rollback();
 
             String errorMsg = e.getMessage();
             Element canceled = responseXML.createElement("error");
@@ -569,12 +576,11 @@ public class XMLParser {
         
         // 改
         try{
-            DBHandler db = new DBHandler();
-            db.createDBHandler();
+            //DBHandler db = DBHandler.getInstance();
+            DBHandler.getInstance().createDBHandler();
             XMLParser xmlParser = new XMLParser(db);
             xmlParser.parseXML(xml);
-
-            db.getC().close();
+            DBHandler.getInstance().getC().close();
         }catch(Exception e){
             e.printStackTrace();
             System.out.println("something goes wrong");

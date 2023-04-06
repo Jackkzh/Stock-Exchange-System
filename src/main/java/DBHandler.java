@@ -6,8 +6,25 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 
 public class DBHandler {
-
+    private static DBHandler instance;
     private Connection c;
+
+
+    private DBHandler() {
+        // 私有构造函数，防止在外部创建新实例
+        //createDBHandler();
+    }
+
+    public static synchronized DBHandler getInstance() {
+        if (instance == null) {
+            instance = new DBHandler();
+            instance.createDBHandler();
+        }
+        return instance;
+    }
+
+
+
     public void createDBHandler(){
         this.c = null;
         try{
@@ -19,7 +36,7 @@ public class DBHandler {
             //System.out.println("Open db successfully");
 
             // 只用于测试
-            //dropAllTable();
+            dropAllTable();
             commitAllTable();
             //System.out.println("Create tables successfully");
         }catch(Exception e){
@@ -73,16 +90,11 @@ public class DBHandler {
     }
     
     public synchronized void commit(String sql) throws SQLException{
-        try {
-            Statement stmt = null;
-            stmt = this.c.createStatement();
-            stmt.executeUpdate(sql);
-            stmt.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.err.println("Something goes wrong while trying to commit to the db");
-            return;
-        }
+        Statement stmt = null;
+        stmt = this.c.createStatement();
+        stmt.executeUpdate(sql);
+        stmt.close();
+
 
     }
   

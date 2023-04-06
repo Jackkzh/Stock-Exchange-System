@@ -6,20 +6,18 @@ import java.util.*;
 
 public class Account {
 
-    private DBHandler db;
+//    private DBHandler db;
     private int accountID;
     private double current_balance;
 
     // 用的时候一定要注意上级method需要有个try catch
-    public void createNewAccountDB() {
-        try {
-            String sql = "INSERT INTO ACCOUNT" +
-                    "(ACCOUNT_ID, CURRENT_BALANCE) VALUES (" +
-                    this.accountID + ", " + this.current_balance + ");";
-            this.db.commit(sql);
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
+    public void createNewAccountDB() throws SQLException {
+
+        String sql = "INSERT INTO ACCOUNT" +
+                "(ACCOUNT_ID, CURRENT_BALANCE) VALUES (" +
+                this.accountID + ", " + this.current_balance + ");";
+        DBHandler.getInstance().commit(sql);
+
     }
 
     // can check if we already have this account

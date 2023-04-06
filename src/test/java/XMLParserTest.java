@@ -17,7 +17,7 @@ public class XMLParserTest {
 //        PostgreJDBC jdbc = Shared.helper_generateValidJdbc();
 //
 //        Shared.cleanAllTables(jdbc);
-        DBHandler db = new DBHandler();
+        DBHandler db = DBHandler.getInstance();
         db.createDBHandler();
         XMLParser parser = new XMLParser(db);
         String response = parser.responseMessage;

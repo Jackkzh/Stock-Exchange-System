@@ -33,10 +33,7 @@ import java.util.Base64;
 public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
     public XMLParser xmlParser;
-
-    public ServerHandler() {
-
-    }
+    //public DBHandler db;
 
     public List<Integer> findDifferentIndexes(String str1, String str2) {
         List<Integer> indexes = new ArrayList<>();
@@ -69,16 +66,14 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
         //System.out.println("Received message from client: " + request);
         // 改
         try{
-            DBHandler db = new DBHandler();
-            db.createDBHandler();
-            xmlParser = new XMLParser(db);
+
             xmlParser.parseXML(request);
 
             String response = xmlParser.getResponseMessage();
             System.out.println(response);
             ctx.writeAndFlush(response);
 
-            db.getC().close();
+            //db.getC().close();
         } catch (IllegalArgumentException e) {
             System.out.println("in illegal argument exception");
             System.out.println(e.getMessage());
@@ -105,7 +100,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
             System.out.println(e.getMessage());
             return;
         } catch (Exception e) {
-            System.out.println("in general exception");
+            System.out.println("fdsfdfjdskfdjjldsajfkjfkdsajlkjfakljlasdjlkf");
             System.out.println(e.getMessage());
             return;
         }
@@ -126,11 +121,19 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         Channel incoming = ctx.channel();
+        //DBHandler db = DBHandler.getInstance();
+        DBHandler.getInstance().createDBHandler();
+        xmlParser = new XMLParser();
+//        db = new DBHandler();
+//        db.createDBHandler();
         //System.out.println("***** Client: " + incoming.remoteAddress() + " is connected. *****");
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         Channel incoming = ctx.channel();
+        //DBHandler db = DBHandler.getInstance();
+        DBHandler.getInstance().getC().close();
+//        db.getC().close();
     }
 }
