@@ -19,11 +19,68 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
+//import for'PostgreJDBC'
+import java.sql.*;
+import java.sql.Statement;
 
 public class XMLParser {
+    public String reponseMessage;
+    public XMLParser() {
+    }
+
+    public String getResponseMessage() {
+        return reponseMessage;
+    }
+
+    public boolean checkValidXML (String xml) {
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            StringBuilder xmlStringBuilder = new StringBuilder();
+            xmlStringBuilder.append(xml);
+            ByteArrayInputStream input = new ByteArrayInputStream(xmlStringBuilder.toString().getBytes("UTF-8"));
+            Document doc = db.parse(input);
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            return false;
+        }
+        return true;
+    }
+
+
 
     public void parseXML(String xml) throws TransformerException, ParserConfigurationException, IOException, SAXException, IllegalArgumentException {
+        if (!checkValidXML(xml)) {
+            // write a xml with root called 'error' and a msg saying 'XML is not well-formed.'
+
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            StringBuilder xmlStringBuilder = new StringBuilder();
+            Document responseXML = db.newDocument();
+            String errorMsg = "XML is not well-formed.";
+            Element responseRoot = responseXML.createElement("error");
+            responseRoot.appendChild(responseXML.createTextNode(errorMsg));
+            responseXML.appendChild(responseRoot);
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(responseXML), new StreamResult(writer));
+            String result = writer.getBuffer().toString().replaceAll("\n|\r", "");
+            reponseMessage = result;
+            return;
+        }
+
+
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            StringBuilder xmlStringBuilder = new StringBuilder();
+            xmlStringBuilder.append(xml);
+            ByteArrayInputStream input = new ByteArrayInputStream(xmlStringBuilder.toString().getBytes("UTF-8"));
+            Document doc = db.parse(input);
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            throw new IllegalArgumentException("XML is not well-formed.");
+        }
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder();
         StringBuilder xmlStringBuilder = new StringBuilder();
@@ -34,22 +91,34 @@ public class XMLParser {
 
         // creates a Response XML object
         Document responseXML = db.newDocument();
-        Element responseRoot = responseXML.createElement("results");
-        responseXML.appendChild(responseRoot);
+
 
         // get the root of Request XML
         Element root = doc.getDocumentElement();
+        //System.out.println("Root element :" + root.getNodeName());
         String rootName = root.getNodeName();
         NodeList nodeList = root.getChildNodes();
 
         // top root is either create or transactions
-        if (rootName.equals("create")) {
-            processCreateXML(nodeList, responseXML);
-        } else if (rootName.equals("transactions")) {
-            System.out.println("transactions....");
-            processTransactionsXML(nodeList, root, responseXML);
-        } else {
-            throw new IllegalArgumentException("XML only accepts create or transactions.");
+        try {
+            if (rootName.equals("create")) {
+                Element responseRoot = responseXML.createElement("results");
+                responseXML.appendChild(responseRoot);
+                processCreateXML(nodeList, responseXML);
+            } else if (rootName.equals("transactions")) {
+                System.out.println("transactions....");
+                Element responseRoot = responseXML.createElement("results");
+                responseXML.appendChild(responseRoot);
+                processTransactionsXML(nodeList, root, responseXML);
+            } else {
+                throw new IllegalArgumentException("XML only accepts create or transactions.");
+            }
+        } catch (IllegalArgumentException e) {
+            String errorMsg = e.getMessage();
+            Element error = responseXML.createElement("error");
+            error.appendChild(responseXML.createTextNode(errorMsg));
+            responseXML.appendChild(error);
+            return;
         }
 
         TransformerFactory tf = TransformerFactory.newInstance();
@@ -58,6 +127,7 @@ public class XMLParser {
         StringWriter writer = new StringWriter();
         transformer.transform(new DOMSource(responseXML), new StreamResult(writer));
         String result = writer.getBuffer().toString().replaceAll("\n|\r", "");
+        reponseMessage = result;
         System.out.println(result);
 //        TransformerFactory transformerFactory = TransformerFactory.newInstance();
 //        Transformer transformer = transformerFactory.newTransformer();
@@ -125,8 +195,8 @@ public class XMLParser {
             /**
              * this is the part to creating an account
              */
+            //this.db.getC().setAutoCommit(false);
             //createAccount(.....); // error when account is already created
-
 
             // write a message in syntax "<created id="ACCOUNT_ID"/>" ,and add to ResponseXML
             Element created = responseXML.createElement("created");
@@ -225,57 +295,196 @@ public class XMLParser {
      * @ param responseXML the response XML
      */
     public void processTransactionsXML(NodeList nodeList, Element root, Document responseXML) throws InvalidParameterException {
+
         try {
-            // check if Account ID is valid
-            int accountID = Integer.parseInt(root.getAttribute("id"));
+            int AccountID = Integer.parseInt(root.getAttribute("id"));
+        } catch ( NumberFormatException e) {
+            String errorMsg = e.getMessage();
+            Element created = responseXML.createElement("error");
+            created.appendChild(responseXML.createTextNode(errorMsg));
+            Element responseRoot = responseXML.getDocumentElement();
+            responseRoot.appendChild(created);
+            return;
+        }
 
-            // process each node in nodeList, check
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                Node node = nodeList.item(i);
-                if (node.getNodeType() == Node.ELEMENT_NODE) {
-                    Element element = (Element) node;
-                    String nodeName = element.getNodeName();
+
+        // the ID of current transactions
+        int accountID = Integer.parseInt(root.getAttribute("id"));
+
+        // process each node in nodeList, check
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node node = nodeList.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) node;
+                String nodeName = element.getNodeName();
+                try {
                     if (nodeName.equals("order")) {
-                        String sym = element.getAttribute("sym");
-                        double amount = Double.parseDouble(element.getAttribute("amount"));
-                        double limits = Double.parseDouble(element.getAttribute("limit"));
-                        // opened order API
-
-
+                        openOrder(element, responseXML);
                     } else if (nodeName.equals("cancel")) {
                         int TransID = Integer.parseInt(element.getAttribute("id"));
+                        cancelOrder(element, responseXML);
                         // cancel order API
                     } else if (nodeName.equals("query")) {
                         String TransID = element.getAttribute("sym");
                         // query order API
+                        queryOrder(element, responseXML);
                     }
+                } catch (NumberFormatException e) {
+                    String errorMsg = e.getMessage();
+                    Element created = responseXML.createElement("error");
+                    created.appendChild(responseXML.createTextNode(errorMsg));
+                    Element responseRoot = responseXML.getDocumentElement();
+                    responseRoot.appendChild(created);
+                } catch (Exception e) {
+                    String errorMsg = e.getMessage();
+                    Element created = responseXML.createElement("error");
+                    created.appendChild(responseXML.createTextNode(errorMsg));
+                    Element responseRoot = responseXML.getDocumentElement();
+                    responseRoot.appendChild(created);
                 }
             }
-        } catch (NumberFormatException e) {
-            throw new InvalidParameterException("Invalid attributes format");
-            //responseXML.appendChild(responseRoot);
-        } catch (Exception e) {
-            throw new InvalidParameterException("transaction logic error");
         }
     }
 
 
+    public void openOrder(Element element, Document responseXML) throws InvalidParameterException {
+        try {
+            String sym = element.getAttribute("sym");
+            double amount = Double.parseDouble(element.getAttribute("amount"));
+            double limits = Double.parseDouble(element.getAttribute("limit"));
+        } catch (NumberFormatException e) {
+            String errorMsg = e.getMessage();
+            Element created = responseXML.createElement("error");
+            created.appendChild(responseXML.createTextNode(errorMsg));
+            Element responseRoot = responseXML.getDocumentElement();
+            responseRoot.appendChild(created);
+        }
+        String sym = element.getAttribute("sym");
+        double amount = Double.parseDouble(element.getAttribute("amount"));
+        double limits = Double.parseDouble(element.getAttribute("limit"));
+
+        try {
+            /**
+             * open order method
+             */
+            // call open-order method
+
+            Element opened = responseXML.createElement("opened");
+            opened.setAttribute("sym", sym);
+            opened.setAttribute("amount", Double.toString(amount));
+            opened.setAttribute("limit", Double.toString(limits));
+            Element responseRoot = responseXML.getDocumentElement();
+            responseRoot.appendChild(opened);
+        } catch ( Exception e) {
+            String errorMsg = e.getMessage();
+            Element opened = responseXML.createElement("error");
+            opened.setAttribute("sym", sym);
+            opened.setAttribute("amount", Double.toString(amount));
+            opened.setAttribute("limit", Double.toString(limits));
+            opened.appendChild(responseXML.createTextNode(errorMsg));
+            Element responseRoot = responseXML.getDocumentElement();
+            responseRoot.appendChild(opened);
+        }
+    }
+
+    public void queryOrder(Element element, Document responseXML) {
+        try {
+            int transID = Integer.parseInt(element.getAttribute("id"));
+        } catch (NumberFormatException e) {
+            String errorMsg = e.getMessage();
+            Element created = responseXML.createElement("error");
+            created.appendChild(responseXML.createTextNode(errorMsg));
+            Element responseRoot = responseXML.getDocumentElement();
+            responseRoot.appendChild(created);
+        }
+        int transID = Integer.parseInt(element.getAttribute("id"));
+        String sym = element.getAttribute("sym");
+        double amount = Double.parseDouble(element.getAttribute("amount"));
+        double limits = Double.parseDouble(element.getAttribute("limit"));
+        try {
+            /**
+             * query order method
+             */
+            // call query-order method
+
+            Element queried = responseXML.createElement("error");
+            queried.setAttribute("sym", sym);
+            queried.setAttribute("amount", Double.toString(amount));
+            queried.setAttribute("limit", Double.toString(limits));
+            Element responseRoot = responseXML.getDocumentElement();
+            responseRoot.appendChild(queried);
+
+        } catch ( Exception e) {
+            String errorMsg = e.getMessage();
+            Element queried = responseXML.createElement("error");
+            queried.setAttribute("sym", sym);
+            queried.setAttribute("amount", Double.toString(amount));
+            queried.setAttribute("limit", Double.toString(limits));
+            queried.appendChild(responseXML.createTextNode(errorMsg));
+            Element responseRoot = responseXML.getDocumentElement();
+            responseRoot.appendChild(queried);
+        }
+    }
+
+    public void cancelOrder(Element element, Document responseXML) {
+        try {
+            int transID = Integer.parseInt(element.getAttribute("id"));
+        } catch (NumberFormatException e) {
+            String errorMsg = e.getMessage();
+            Element created = responseXML.createElement("error");
+            created.appendChild(responseXML.createTextNode(errorMsg));
+            Element responseRoot = responseXML.getDocumentElement();
+            responseRoot.appendChild(created);
+        }
+        int transID = Integer.parseInt(element.getAttribute("id"));
+        try {
+            /**
+             * cancel order method
+             */
+
+            Element node = responseXML.createElement("caceled");
+            node.setAttribute("id", Integer.toString(transID));
+
+            // loop to add all canceled lines here
+
+            Element responseRoot = responseXML.getDocumentElement();
+            responseRoot.appendChild(node);
+
+
+
+            // call cancel-order method
+        } catch (Exception e) {
+            String errorMsg = e.getMessage();
+            Element canceled = responseXML.createElement("error");
+            canceled.setAttribute("id", Integer.toString(transID));
+            canceled.appendChild(responseXML.createTextNode(errorMsg));
+            Element responseRoot = responseXML.getDocumentElement();
+            responseRoot.appendChild(canceled);
+        }
+    }
+
+
+
+
+
     // write a main function to test the XMLParser
     public static void main(String[] args) throws TransformerException,ParserConfigurationException, IOException, SAXException, SQLException {
-        XMLParser xmlParser = new XMLParser();
+
         String xml =
-                "<create>\n" +
-                "    <account id=\"2\" balance=\"100.00\"/>\n" +
-                "    <account id=\"1\" balance=\"100.00\"/>\n" +
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<create>" +
+                "    <account id=\"2\" balance=\"100.00\"/>" +
+                "    <account id=\"1\" balance=\"100.00\"/>" +
                 "    <symbol sym=\"AAPL\">\n" +
-                "        <account id=\"2\">1234</account>\n" +
-                "        <account id=\"3\">12324</account>\n" +
-                "    </symbol>\n" +
-                "    <symbol sym=\"MSFT\">\n" +
-                "        <account id=\"5\">12</account>\n" +
-                "        <account id=\"3\">324</account>\n" +
-                "    </symbol>\n" +
+                "        <account id=\"2\">1234</account>" +
+                "        <account id=\"3\">12324</account>" +
+                "    </symbol>" +
+                "    <symbol sym=\"MSFT\">" +
+                "        <account id=\"5\">12</account>" +
+                "        <account id=\"3\">324</account>" +
+                "    </symbol>" +
                 "</create>";
+        XMLParser xmlParser = new XMLParser();
         xmlParser.parseXML(xml);
     }
 }

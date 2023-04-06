@@ -41,7 +41,7 @@ public class Server {
                         protected void initChannel(@NotNull SocketChannel socketChannel) throws Exception {
                             //将 ServerHandler 处理器添加到管道中，用来处理客户端连接的读写事件
                             ChannelPipeline pipeline = socketChannel.pipeline();
-                            pipeline.addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+                            //pipeline.addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
                             pipeline.addLast("decoder", new StringDecoder()); // automatically decode the received ByteBuf into a String
                             pipeline.addLast("encoder", new StringEncoder()); // automatically encode the String response into a ByteBuf
                              //pipeline.addLast(new LoggingHandler(LogLevel.INFO));
