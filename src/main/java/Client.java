@@ -45,8 +45,7 @@ public class Client {
                     });
             System.out.println("This is Client side!");
             //连接服务端
-            ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 7788).sync();
-
+            ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 12345).sync();
 
 //            String input =
 //                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -63,7 +62,6 @@ public class Client {
 //                            "    </symbol>\n" +
 //                            "</create>\n";
             //channelFuture.channel().writeAndFlush(input);
-
             while (true) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
                 StringBuilder sb = new StringBuilder(); // 用 StringBuilder 来保存所有的输入行
@@ -85,7 +83,7 @@ public class Client {
                 //对通道关闭进行监听
                 String input = sb.toString(); // 将 StringBuilder 转成字符串
                 channelFuture.channel().writeAndFlush(input);
-                System.out.println("Sent message to server: " + input);
+                //System.out.println("Sent message to server: " + input);
             }
 
             //channelFuture.channel().closeFuture().sync();

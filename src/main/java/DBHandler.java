@@ -14,14 +14,14 @@ public class DBHandler {
             Class.forName("org.postgresql.Driver");
             // do it remote?
             this.c = DriverManager
-                .getConnection("jdbc:postgresql://localhost:5432/stockexchange","postgres","passw0rd");
+                .getConnection("jdbc:postgresql://localhost:5432/project4","wenxi","jackisme");
 
-            System.out.println("Open db successfully");
+            //System.out.println("Open db successfully");
 
             // 只用于测试
             dropAllTable();
             commitAllTable();
-            System.out.println("Create tables successfully");
+            //System.out.println("Create tables successfully");
         }catch(Exception e){
             e.printStackTrace();
             System.err.println("Something goes wrong while trying to connect to the db");
@@ -69,7 +69,7 @@ public class DBHandler {
         "DROP TABLE IF EXISTS ACCOUNT CASCADE;" +
         "DROP TYPE IF EXISTS STATUSTYPE;";
         commit(sqlDrop);
-        System.out.println("Drop tables successfully");
+        //System.out.println("Drop tables successfully");
     }
     
     public synchronized void commit(String sql) throws SQLException{

@@ -20,6 +20,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.IOException;
 //import for list
+import java.sql.SQLException;
 import java.util.List;
 import java.util.ArrayList;
 import static org.junit.Assert.assertEquals;
@@ -66,27 +67,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
                 request += line.trim();
         }
         //System.out.println("Received message from client: " + request);
-
-        //check if msg is a valid xml, if not print error message
-//        try {
-//            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-//            DocumentBuilder builder = factory.newDocumentBuilder();
-//            builder.parse(new InputSource(new StringReader(msg)));
-//        } catch (SAXException e) {
-//            System.out.println("Invalid XML");
-//            return;
-//        }
-//
-//
-//        xmlParser = new XMLParser();
-//        try {
-//            xmlParser.parseXML(msg);
-//        } catch (IllegalArgumentException e)
-//        {
-//            System.out.println("Invalid XML syntax");
-//            return;
-//        }
-
         // 改
         try{
             DBHandler db = new DBHandler();
@@ -95,12 +75,39 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
             xmlParser.parseXML(request);
 
             String response = xmlParser.getResponseMessage();
+            System.out.println(response);
             ctx.writeAndFlush(response);
 
             db.getC().close();
-        }catch(Exception e){
-            e.printStackTrace();
-            System.out.println("something goes wrong");
+        } catch (IllegalArgumentException e) {
+            System.out.println("in illegal argument exception");
+            System.out.println(e.getMessage());
+            return;
+        }
+        catch(SAXException e){
+            System.out.println("in SAX exception");
+            System.out.println(e.getMessage());
+            return;
+        } catch (IOException e) {
+            System.out.println("in IO exception");
+            System.out.println(e.getMessage());
+            return;
+        } catch (ParserConfigurationException e) {
+            System.out.println("in parser configuration exception");
+            System.out.println(e.getMessage());
+            return;
+        } catch (TransformerException e) {
+            System.out.println("in transformer exception");
+            System.out.println(e.getMessage());
+            return;
+        } catch (SQLException e) {
+            System.out.println("in SQL exception");
+            System.out.println(e.getMessage());
+            return;
+        } catch (Exception e) {
+            System.out.println("in general exception");
+            System.out.println(e.getMessage());
+            return;
         }
     }
 

@@ -53,7 +53,7 @@ public class Server {
             //ChannelFuture 是 Netty 中的一个异步 IO 操作结果的句柄，来监听异步操作结果
             //一个操作的结果通常是一个 ChannelFuture 对象，如：绑定、连接、写入、读取等
             //绑定端口号，启动服务端
-            ChannelFuture channelFuture = bootstrap.bind(7788).sync();
+            ChannelFuture channelFuture = bootstrap.bind(12345).sync();
             //对关闭通道进行监听
             channelFuture.channel().closeFuture().sync();
         } finally {

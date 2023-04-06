@@ -17,23 +17,21 @@ import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 //import for'PostgreJDBC'
 import java.sql.*;
 import java.sql.Statement;
 
 public class XMLParser {
-
     // 改
     public DBHandler db;
-    public String reponseMessage;
+    public String responseMessage;
+
     public XMLParser(DBHandler rhsdb) {
         this.db = rhsdb;
     }
 
     public String getResponseMessage() {
-        return reponseMessage;
+        return responseMessage;
     }
 
     public boolean checkValidXML (String xml) {
@@ -50,12 +48,30 @@ public class XMLParser {
         return true;
     }
 
+    public String makeXML(Document XMLMessage) throws TransformerException {
+        TransformerFactory tf = TransformerFactory.newInstance();
+        Transformer transformer = tf.newTransformer();
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+        StringWriter writer = new StringWriter();
+        transformer.transform(new DOMSource(XMLMessage), new StreamResult(writer));
+        String result = writer.getBuffer().toString().replaceAll("\n|\r", "");
+        return result;
+    }
 
-
+    /**
+     * parseXML parses XML from client, and decide which method to call 'create' / 'transaction'
+     * @param xml the xml string to be parsed (received from client side)
+     * @throws TransformerException
+     * @throws ParserConfigurationException
+     * @throws IOException
+     * @throws SAXException
+     * @throws IllegalArgumentException
+     * @throws SQLException
+     */
     public void parseXML(String xml) throws TransformerException, ParserConfigurationException, IOException, SAXException, IllegalArgumentException, SQLException {
+        // return a error xml to client is xml is not well-formed
         if (!checkValidXML(xml)) {
             // write a xml with root called 'error' and a msg saying 'XML is not well-formed.'
-
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
             StringBuilder xmlStringBuilder = new StringBuilder();
@@ -70,11 +86,13 @@ public class XMLParser {
             StringWriter writer = new StringWriter();
             transformer.transform(new DOMSource(responseXML), new StreamResult(writer));
             String result = writer.getBuffer().toString().replaceAll("\n|\r", "");
-            reponseMessage = result;
+            responseMessage = result;
+            System.out.println("this is in chcekvalid");
+
             return;
         }
 
-
+        // create a response XML
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
@@ -96,7 +114,6 @@ public class XMLParser {
         // creates a Response XML object
         Document responseXML = db.newDocument();
 
-
         // get the root of Request XML
         Element root = doc.getDocumentElement();
         //System.out.println("Root element :" + root.getNodeName());
@@ -115,27 +132,21 @@ public class XMLParser {
                 responseXML.appendChild(responseRoot);
                 processTransactionsXML(nodeList, root, responseXML);
             } else {
+                System.out.println("error not either ");
                 throw new IllegalArgumentException("XML only accepts create or transactions.");
             }
         } catch (IllegalArgumentException e) {
+            System.out.println("error in parseXML");
             String errorMsg = e.getMessage();
             Element error = responseXML.createElement("error");
             error.appendChild(responseXML.createTextNode(errorMsg));
             responseXML.appendChild(error);
+            responseMessage = makeXML(responseXML);
             return;
         }
 
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer transformer = tf.newTransformer();
-        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-        StringWriter writer = new StringWriter();
-        transformer.transform(new DOMSource(responseXML), new StreamResult(writer));
-        String result = writer.getBuffer().toString().replaceAll("\n|\r", "");
-        reponseMessage = result;
-        System.out.println(result);
-//        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-//        Transformer transformer = transformerFactory.newTransformer();
-//
+        responseMessage = makeXML(responseXML);
+        System.out.println(responseMessage);
 //// 将 DOMSource 转换为 StreamResult
 //        DOMSource source = new DOMSource(responseXML);
 //        StringWriter writer = new StringWriter();
@@ -195,7 +206,7 @@ public class XMLParser {
             return;
         }
 
-        int accountid = Integer.parseInt(element.getAttribute("id"));
+        int accountID = Integer.parseInt(element.getAttribute("id"));
         double balance = Double.parseDouble(element.getAttribute("balance"));
 
         try {
@@ -207,27 +218,26 @@ public class XMLParser {
 
             // 改
             this.db.getC().setAutoCommit(false);
-            Account account = new Account(this.db, accountid, balance);
+            Account account = new Account(this.db, accountID, balance);
             account.createNewAccountDB();
             this.db.getC().commit();
 
             // write a message in syntax "<created id="ACCOUNT_ID"/>" ,and add to ResponseXML
             Element created = responseXML.createElement("created");
-            int id = Integer.parseInt(element.getAttribute("id"));
-            created.setAttribute("id", Integer.toString(id));
+            //int id = Integer.parseInt(element.getAttribute("id"));
+            created.setAttribute("id", Integer.toString(accountID));
             // get root of responseXML
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(created);
         } catch (Exception e) {
-
             // 改 db错？
             // throw?
+            System.out.println("in hereeeeeee");
             this.db.getC().rollback();
-
             String errorMsg = e.getMessage();
             Element created = responseXML.createElement("error");
-            int id = Integer.parseInt(element.getAttribute("id"));
-            created.setAttribute("id", Integer.toString(id));
+            //int id = Integer.parseInt(element.getAttribute("id"));
+            created.setAttribute("id", Integer.toString(accountID));
             created.appendChild(responseXML.createTextNode(errorMsg));
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(created);

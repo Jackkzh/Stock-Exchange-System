@@ -51,6 +51,11 @@ public class MyOrder {
 
     // 用的时候一定要注意上级method需要有个try catch
     // order tag
+
+    /**
+     * openOrder for Transactions
+     * @throws SQLException
+     */
     public void createMyOrderDB() throws SQLException{
         String sql = "INSERT INTO MYORDER" +
         "(AMOUNT_PURCHASE, LIMIT_PRICE, STATUS, CREATED_TIME, " +
