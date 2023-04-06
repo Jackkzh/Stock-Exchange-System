@@ -229,7 +229,7 @@ public class XMLParser {
             // get root of responseXML
             Element responseRoot = responseXML.getDocumentElement();
             responseRoot.appendChild(created);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             // 改 db错？
             // throw?
             System.out.println("in hereeeeeee");

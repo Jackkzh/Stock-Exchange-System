@@ -19,7 +19,7 @@ public class DBHandler {
             //System.out.println("Open db successfully");
 
             // 只用于测试
-            dropAllTable();
+            //dropAllTable();
             commitAllTable();
             //System.out.println("Create tables successfully");
         }catch(Exception e){
@@ -31,7 +31,7 @@ public class DBHandler {
     }
 
     public synchronized void commitAllTable() throws SQLException{
-
+        //System.out.println("Creating tables in given database...");
         String sqlAccount = "CREATE TABLE IF NOT EXISTS ACCOUNT" +
         "(ACCOUNT_ID INT PRIMARY KEY NOT NULL UNIQUE CHECK (ACCOUNT_ID >= 0),CURRENT_BALANCE FLOAT CHECK (CURRENT_BALANCE >= 0));";
 
@@ -69,15 +69,20 @@ public class DBHandler {
         "DROP TABLE IF EXISTS ACCOUNT CASCADE;" +
         "DROP TYPE IF EXISTS STATUSTYPE;";
         commit(sqlDrop);
-        //System.out.println("Drop tables successfully");
+        System.out.println("Drop tables successfully");
     }
     
     public synchronized void commit(String sql) throws SQLException{
-
-        Statement stmt = null;
-        stmt = this.c.createStatement();
-        stmt.executeUpdate(sql);
-        stmt.close();
+        try {
+            Statement stmt = null;
+            stmt = this.c.createStatement();
+            stmt.executeUpdate(sql);
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Something goes wrong while trying to commit to the db");
+            return;
+        }
 
     }
   
