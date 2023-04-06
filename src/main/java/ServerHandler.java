@@ -86,11 +86,22 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
 //            System.out.println("Invalid XML syntax");
 //            return;
 //        }
-        xmlParser = new XMLParser();
-        xmlParser.parseXML(request);
 
-        String response = xmlParser.getResponseMessage();
-        ctx.writeAndFlush(response);
+        // 改
+        try{
+            DBHandler db = new DBHandler();
+            db.createDBHandler();
+            xmlParser = new XMLParser(db);
+            xmlParser.parseXML(request);
+
+            String response = xmlParser.getResponseMessage();
+            ctx.writeAndFlush(response);
+
+            db.getC().close();
+        }catch(Exception e){
+            e.printStackTrace();
+            System.out.println("something goes wrong");
+        }
     }
 
     @Override
