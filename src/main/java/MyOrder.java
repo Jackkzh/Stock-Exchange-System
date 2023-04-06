@@ -1,8 +1,6 @@
-package src.main.java;
+//package src.main.java;
 import java.sql.*;
-import java.sql.Statement;
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.util.*;
 
 public class MyOrder {
 
@@ -16,8 +14,24 @@ public class MyOrder {
     private int accountID;
     private int transID;
 
+    public MyOrder(DBHandler rhsdb, int rhsorderID, double rhsamountPurchase, double rhslimitPrice, String rhsstatus, Timestamp rhscreatedTime, String rhssymbolName, int rhsaccountID, int rhstransID){
+
+        this.db = rhsdb;
+        this.orderID = rhsorderID;
+        this.amountPurchase = rhsamountPurchase;
+        this.limitPrice = rhslimitPrice;
+        this.status = rhsstatus;
+        this.createdTime = rhscreatedTime;
+        this.symbolName = rhssymbolName;
+        this.accountID = rhsaccountID;
+        this.transID = rhstransID;
+    }
+
     public MyOrder(DBHandler rhsdb, double rhsamountPurchase, double rhslimitPrice, String rhsstatus, Timestamp rhscreatedTime, String rhssymbolName, int rhsaccountID, int rhstransID) throws IllegalArgumentException {
 
+        if(rhssymbolName == "" || rhssymbolName == null){
+            throw new IllegalArgumentException("error symbol name");
+        }
         if(rhsamountPurchase == 0){
             throw new IllegalArgumentException("amount purchase cannot be 0");
         }
@@ -61,7 +75,73 @@ public class MyOrder {
         return this.orderID;
     }
 
-    // query tag
-    // cancel tag
+    public double getLimitprice(){
+        return this.limitPrice;
+    }
+
+    public String getSymbolname(){
+        return this.symbolName;
+    }
+
+    public DBHandler getDB(){
+        return this.db;
+    }
+
+    public int getAccountID(){
+        return this.accountID;
+    }
+
+    public double getamountPurchase(){
+        return this.amountPurchase;
+    }
+
+    public int gettransID(){
+        return this.transID;
+    }
+
+    public String getstatus(){
+        return this.status;
+    }
+
+    public void symbolUpdateStatusDB(String rhsstatus) throws SQLException {
+        String sql = "UPDATE MYORDER SET STATUS = \'" + rhsstatus + "\' WHERE " +
+        "ORDER_ID = " + this.orderID + ";";
+        this.db.commit(sql);
+    }
+
+    public void amountUpdateStatusDB(double amount) throws SQLException {
+        String sql = "UPDATE MYORDER SET AMOUNT_PURCHASE = " + amount + " WHERE " +
+        "ORDER_ID = " + this.orderID + ";";
+        this.db.commit(sql);
+    }
+
+    public void findnewestOrder(int findorderID) throws SQLException {
+
+        String sql = "SELECT * FROM MYORDER WHERE ORDER_ID = " + 
+        findorderID + ";";
+        ResultSet result = this.db.commitAndReturn(sql);
+
+        if(result.next()){
+
+            this.amountPurchase = result.getDouble("AMOUNT_PURCHASE");
+            this.limitPrice = result.getDouble("LIMIT_PRICE");
+            this.status = result.getString("STATUS");
+            this.createdTime = result.getTimestamp("CREATED_TIME");
+            this.symbolName = result.getString("SYMBOL_NAME");
+            this.accountID = result.getInt("ACCOUNT_ID");
+            this.transID = result.getInt("TRANS_ID");
+
+        }else{
+            throw new SQLException("Cannot find this order");
+        }
+
+    }
+
+    public void deleteOrder(int findorderID) throws SQLException {
+
+        String sql = "DELETE FROM MYORDER WHERE ORDER_ID = " + findorderID + ";";
+        this.db.commit(sql);
+
+    }
     
 }
