@@ -42,6 +42,12 @@ public class XMLParser {
             xmlStringBuilder.append(xml);
             ByteArrayInputStream input = new ByteArrayInputStream(xmlStringBuilder.toString().getBytes("UTF-8"));
             Document doc = db.parse(input);
+
+            //if String xml doesnt have <?xml version="1.0" encoding="UTF-8"?>, it is not valid
+            if (doc.getXmlEncoding() == null) {
+                return false;
+            }
+
         } catch (ParserConfigurationException | SAXException | IOException e) {
             return false;
         }

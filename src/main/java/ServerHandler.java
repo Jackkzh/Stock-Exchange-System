@@ -58,11 +58,31 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
 
         String[] lines = msg.split(System.lineSeparator());
-
+        // save lines from 1 - end
         String request = "";
-        for (String line : lines) {
-                request += line.trim();
+        for (int i = 1; i < lines.length; i++) {
+            request += lines[i];
+            // 处理每一行
+            // ...
         }
+        System.out.println(request);
+
+
+//        int length = Integer.parseInt(lines[0]);
+//        System.out.println("fdsfdfasf");
+//        String request = "";
+//        for (int i = 1; i < lines.length; i++) {
+//            request += lines[i];
+//            // 处理每一行
+//            // ...
+//        }
+
+
+
+        //System.out.println("Received message from client: " + request.length());
+
+        //System.out.println(request);
+
         //System.out.println("Received message from client: " + request);
         // 改
         try{
