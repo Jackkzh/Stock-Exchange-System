@@ -14,6 +14,8 @@ import java.lang.IllegalArgumentException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import org.junit.jupiter.api.function.Executable;
+
 public class PositionTest {
 
     // functionality test
@@ -25,8 +27,9 @@ public class PositionTest {
         Account account = new Account(12345,20000);
         account.createNewAccountDB();
         Position position = new Position(10, "SYM", 12345);
-
-        assertDoesNotThrow(position.createNewPositionDB());
+        Executable executable = () -> position.createNewPositionDB();
+        assertDoesNotThrow(executable);
+        //assertDoesNotThrow(position.createNewPositionDB());
     }
 
     @Test

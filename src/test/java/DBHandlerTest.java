@@ -14,6 +14,8 @@ import java.lang.IllegalArgumentException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import org.junit.jupiter.api.function.Executable;
+
 public class DBHandlerTest {
 
     // functionality test
@@ -23,7 +25,9 @@ public class DBHandlerTest {
 
         DBHandler.getInstance().createDBHandler();
         String sql = "SELECT * FROM MYORDER;";
-        assertDoesNotThrow(DBHandler.getInstance().commit(sql));
+        Executable executable = () -> DBHandler.getInstance().commit(sql);
+        assertDoesNotThrow(executable);
+        //assertDoesNotThrow(DBHandler.getInstance().commit(sql));
     }
 
     @Test
@@ -32,7 +36,7 @@ public class DBHandlerTest {
 
         DBHandler.getInstance().createDBHandler();
         String sql = "SELECT * FROM MYORDER";
-
+        
         assertThrows(SQLException.class, ()->DBHandler.getInstance().commit(sql));
     }
     

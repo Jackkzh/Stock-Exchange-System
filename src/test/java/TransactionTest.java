@@ -14,6 +14,8 @@ import java.lang.IllegalArgumentException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import org.junit.jupiter.api.function.Executable;
+
 public class TransactionTest {
 
     // functionality test
@@ -25,7 +27,9 @@ public class TransactionTest {
         Account account = new Account(12345,20000);
         account.createNewAccountDB();
         Transaction transaction = new Transaction(12345);
-        assertDoesNotThrow(transaction.createTransactionDB());
+        Executable executable = () -> transaction.createTransactionDB();
+        assertDoesNotThrow(executable);
+        //assertDoesNotThrow(transaction.createTransactionDB());
     }
 
     @Test

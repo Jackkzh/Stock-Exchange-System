@@ -13,6 +13,8 @@ import java.lang.IllegalArgumentException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import org.junit.jupiter.api.function.Executable;
+
 public class MyOrderTest {
 
     // functionality test
@@ -26,7 +28,9 @@ public class MyOrderTest {
         Transaction transaction = new Transaction(12345);
         transaction.createTransactionDB();
         MyOrder myorder = new MyOrder(100, 1, "OPEN", Timestamp.from(Instant.now()), "SYM", 12345, transaction.getID());
-        assertDoesNotThrow(myorder.createMyOrderDB());
+        Executable executable = () -> myorder.createMyOrderDB();
+        assertDoesNotThrow(executable);
+        //assertDoesNotThrow(myorder.createMyOrderDB());
     }
 
     @Test
