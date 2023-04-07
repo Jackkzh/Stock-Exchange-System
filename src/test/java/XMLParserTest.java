@@ -10,6 +10,9 @@ import javax.xml.transform.TransformerException;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 public class XMLParserTest {
 
     public void helper_responseComparator(String request, String expectedResponse) throws ClassNotFoundException,

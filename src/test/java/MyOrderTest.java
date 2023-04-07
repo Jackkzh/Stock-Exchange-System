@@ -10,6 +10,8 @@ import javax.xml.transform.TransformerException;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 import java.lang.IllegalArgumentException;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 public class MyOrderTest {
 
