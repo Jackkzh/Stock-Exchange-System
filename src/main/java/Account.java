@@ -10,6 +10,14 @@ public class Account {
     private int accountID;
     private double current_balance;
 
+    public int getAccountID(){
+        return this.accountID;
+    }
+
+    public double getcurrentBalance(){
+        return this.current_balance;
+    }
+
     // 用的时候一定要注意上级method需要有个try catch
     public void createNewAccountDB() throws SQLException {
 

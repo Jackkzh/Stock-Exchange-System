@@ -9,14 +9,17 @@ import javax.xml.transform.TransformerException;
 
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
+import java.lang.IllegalArgumentException;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import org.junit.jupiter.api.function.Executable;
 
-public class XMLParserTest {
 
+public class AccountTest {
+
+    // scalability test
     public void helper_responseComparator(String request, String expectedResponse) throws ClassNotFoundException,
             SQLException, ParserConfigurationException, SAXException, IOException, TransformerException {
 //        PostgreJDBC jdbc = Shared.helper_generateValidJdbc();
@@ -33,20 +36,20 @@ public class XMLParserTest {
     }
 
     @Test
-    public void test_parseAndProcessRequest_malformed() throws ClassNotFoundException, SQLException,
+    public void test_normalCreateAccount() throws ClassNotFoundException, SQLException,
             ParserConfigurationException, SAXException, IOException, TransformerException {
         String request =
-                "123" +
-                "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" +
-                        "<create" +
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                    "<create>" +
                         "<account id=\"123456\" balance=\"1000\"/>" +
                         "<account id=\"738\" balance=\"2000\"/>" +
-                        "</create>";
+                    "</create>";
 
         String expected =
-                "<error>" +
-                        "XML is not well-formed." +
-                        "</error>";
+                "<results>"+
+                    "<created id=\"123456\"/>" +
+                    "<created id=\"738\"/>" +
+                "</results>";
         this.helper_responseComparator(request, expected);
     }
 
@@ -55,19 +58,44 @@ public class XMLParserTest {
             ParserConfigurationException, SAXException, IOException, TransformerException{
 
         String request =
-                "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" +
-                        "<reate>" +
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                    "<create>" +
                         "<account id=\"123456\" balance=\"1000\"/>" +
-                        "<account id=\"738\" balance=\"2000\"/>" +
-                        "</reate>";
+                        "<account id=\"123456\" balance=\"2000\"/>" +
+                    "</create>";
 
         String expected =
-                "<error>" +
-                        "XML only accepts create or transactions." +
-                        "</error>";
+                "<results>"+
+        "<created id=\"123456\"/>" +
+        "<error id=\"123456\">ERROR: duplicate key value violates unique constraint \"account_pkey\"  Detail: Key (account_id)=(123456) already exists.</error>" +
+                "</results>";
 
         this.helper_responseComparator(request, expected);
     }
+
+    // functionality test
+    @Test
+    public void test_normalCreate() throws ClassNotFoundException, SQLException,
+            ParserConfigurationException, SAXException, IOException, TransformerException, IllegalArgumentException{
+
+        DBHandler.getInstance().createDBHandler();
+        Account account = new Account(12345,20000);
+        account.createNewAccountDB();
+        assertEquals(12345, account.getAccountID());
+        assertEquals(20000, account.getcurrentBalance());
+    }
+
+    @Test
+    public void test_errorCreate() throws ClassNotFoundException, SQLException,
+            ParserConfigurationException, SAXException, IOException, TransformerException, IllegalArgumentException{
+
+        DBHandler.getInstance().createDBHandler();
+        Account account = new Account(12345,20000);
+        account.createNewAccountDB();
+        Account account2 = new Account(12345,20000);
+        assertThrows(SQLException.class, ()->account2.createNewAccountDB());
+    }
+
 
 
 }
