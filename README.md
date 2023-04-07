@@ -4,6 +4,9 @@ Collaborator
 * Yu Xiong - yx236
 * Wenxi Zhong - wz173
 
+# 1. How to run
+To run this project, do 'sudo docker-compose up, and the server would start running in docker.
+
 # 2. Tech Stacks
 Netty + Java DOM Parser + Hibernates + PostgreSQL
 
