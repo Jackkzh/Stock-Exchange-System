@@ -9,7 +9,7 @@ To run this project, do sudo docker-compose up, and the server would start runni
 
 # 2. Testing
 We put unit tests in src/test/java.
-We provided some test xml cases under testing folder, which include both correct syntax and incorrect. 
+We provided some test xml cases under testing folder, which include correct syntax. 
 
 
 # 3. Design & Implementation
