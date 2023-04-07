@@ -1,21 +1,29 @@
-version: "3"
+version: "2"
 
 services:
-  eng:
-    build: .
-    volumes:
-      - .:/app
-    ports:
-      - "12345:12345"
-    depends_on:
-      - db
-
-  db:
+  postgres:
     image: postgres
+    restart: always
     environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=project4
+      - POSTGRES_USER=wenxi
+      - POSTGRES_PASSWORD=jackisme
     ports:
-      - "5432:5432"
-
+      - 5432:5432
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    #command: tail -f /dev/null  # 保持容器运行
+  proj4:
+    container_name: proj4
+    build: ./
+    image: proj4:latest
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    ports:
+      - 12345:12345
+    volumes:
+      - ./:/app
+    depends_on:
+      - postgres

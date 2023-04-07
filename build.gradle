@@ -1,9 +1,42 @@
 plugins {
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-group = 'org.example'
-version = '1.0-SNAPSHOT'
+
+shadowJar{
+    archiveClassifier.set('')
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+// repositories {
+//     mavenCentral()
+// }
+
+// plugins {
+//     id 'java'
+// }
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    manifest{
+        attributes(
+                'Main-Class': 'Server'
+        )
+
+
+    }
+}
+
+
 
 repositories {
     mavenCentral()
