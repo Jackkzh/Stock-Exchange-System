@@ -19,8 +19,6 @@ import org.junit.jupiter.api.function.Executable;
 public class DBHandlerTest {
 
     // functionality test
-
-
     @Test
     public void test_errorPositionCreatenotexist() throws ClassNotFoundException, SQLException,
             ParserConfigurationException, SAXException, IOException, TransformerException, IllegalArgumentException{

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<create>
+  <account id="12345" balance="10000"/>
+  <symbol sym="SYM">
+    <account id="12345">100</account>
+  </symbol>
+  <symbol sym="CCC">
+    <account id="12345">200</account>
+  </symbol>
+</create>

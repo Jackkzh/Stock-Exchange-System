@@ -1,0 +1,31 @@
+98
+<?xml version="1.0" encoding="UTF-8"?>
+<create>
+  <account id="12345" balance="10000"/>
+</create>
+
+
+        595
+        <?xml version="1.0" encoding="UTF-8"?>
+<create>
+<account id="1" balance="1000"/>
+<account id="2" balance="1000"/>
+<account id="3" balance="1000"/>
+<account id="4" balance="1000"/>
+<account id="5" balance="1000"/>
+<symbol sym="SPY">
+  <account id="1">10</account>
+  <account id="2">10</account>
+  <account id="3">10</account>
+</symbol>
+<symbol sym="SB">
+  <account id="1">10</account>
+  <account id="2">10</account>
+  <account id="3">10</account>
+</symbol>
+<symbol sym="SS">
+  <account id="1">10</account>
+  <account id="2">10</account>
+  <account id="3">10</account>
+</symbol>
+</create>

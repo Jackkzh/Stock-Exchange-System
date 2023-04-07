@@ -8,7 +8,8 @@ Collaborator
 To run this project, do sudo docker-compose up, and the server would start running in docker.
 
 # 2. Testing
-We put unit tests in src/test/java
+We put unit tests in src/test/java.
+We provided some test xml cases under testing folder, which include both correct syntax and incorrect. 
 
 
 # 3. Design & Implementation

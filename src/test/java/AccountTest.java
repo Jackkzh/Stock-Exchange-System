@@ -19,7 +19,6 @@ import org.junit.jupiter.api.function.Executable;
 
 public class AccountTest {
 
-    // scalability test
     public void helper_responseComparator(String request, String expectedResponse) throws ClassNotFoundException,
             SQLException, ParserConfigurationException, SAXException, IOException, TransformerException {
 //        PostgreJDBC jdbc = Shared.helper_generateValidJdbc();
