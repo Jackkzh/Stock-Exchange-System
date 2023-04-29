@@ -45,8 +45,8 @@ public class Client {
                     });
             System.out.println("This is Client side!");
             //连接服务端
-            ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 12345).sync();
-                //vcm-32395.vm.duke.edu
+            ChannelFuture channelFuture = bootstrap.connect("vcm-32395.vm.duke.edu", 12345).sync();
+            //vcm-32395.vm.duke.edu
 //            String input =
 //                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
 //                    "<create>\n" +

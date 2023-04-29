@@ -31,11 +31,12 @@ public class DBHandler {
             Class.forName("org.postgresql.Driver");
             // do it remote?
             this.c = DriverManager
-                .getConnection("jdbc:postgresql://localhost:5432/project4","wenxi","jackisme");
-
+                .getConnection("jdbc:postgresql://postgres:5433/project4","postgres","passw0rd");
+                // postgres要改为localhost
             //System.out.println("Open db successfully");
 
             // 只用于测试
+            //System.out.println("Drop tables if exists");
             dropAllTable();
             commitAllTable();
             //System.out.println("Create tables successfully");

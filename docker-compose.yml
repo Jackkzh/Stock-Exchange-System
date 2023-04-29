@@ -6,10 +6,10 @@ services:
     restart: always
     environment:
       - POSTGRES_DB=project4
-      - POSTGRES_USER=wenxi
-      - POSTGRES_PASSWORD=jackisme
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=passw0rd
     ports:
-      - 5432:5432
+      - 5433:5433
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
     #command: tail -f /dev/null  # 保持容器运行

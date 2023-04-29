@@ -3,7 +3,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.CharsetUtil;
-
+import jakarta.persistence.criteria.CriteriaBuilder.In;
 //import for channel
 import io.netty.channel.Channel;
 
@@ -58,6 +58,11 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
 
         String[] lines = msg.split(System.lineSeparator());
+        // change lines[0] to integer
+        Integer length = Integer.parseInt(lines[0]);
+        
+        System.out.println("Received message from client of length: " + length); 
+
         // save lines from 1 - end
         String request = "";
         for (int i = 1; i < lines.length; i++) {
@@ -65,7 +70,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
             // 处理每一行
             // ...
         }
-        System.out.println(request);
+        //Integer lengthWithoutSpaces = request.length();
+        //System.out.println("Received message from client of length: " + lengthWithoutSpaces);
+        //System.out.println(request);
 
 
 //        int length = Integer.parseInt(lines[0]);

@@ -3,24 +3,22 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-
 shadowJar{
     archiveClassifier.set('')
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+
 group 'org.example'
 version '1.0-SNAPSHOT'
 
-// repositories {
-//     mavenCentral()
-// }
-
-// plugins {
-//     id 'java'
-// }
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
-
 
 repositories {
     mavenCentral()
@@ -31,8 +29,6 @@ jar {
         attributes(
                 'Main-Class': 'Server'
         )
-
-
     }
 }
 

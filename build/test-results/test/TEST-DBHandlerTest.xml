@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="DBHandlerTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2023-04-07T03:50:12" hostname="wenxi" time="0.187">
+  <properties/>
+  <testcase name="test_errorPositionCreatenotexist()" classname="DBHandlerTest" time="0.187"/>
+  <system-out><![CDATA[595
+Drop tables successfully
+Drop tables successfully
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
